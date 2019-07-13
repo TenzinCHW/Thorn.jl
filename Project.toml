@@ -1,0 +1,4 @@
+name = "SpikingNN"
+uuid = "d87a7e5a-a546-11e9-029a-ebfb0c165160"
+authors = ["Tenzin Chan <tenzin_chan@mymail.sutd.edu.sg>"]
+version = "0.1.0"
