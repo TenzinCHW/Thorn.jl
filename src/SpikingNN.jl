@@ -1,5 +1,4 @@
 module SpikingNN
-
-greet() = print("Hello World!")
-
-end # module
+    include("spike.jl")
+    include("neurons/neuron.jl")
+end
