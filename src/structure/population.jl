@@ -7,6 +7,5 @@ struct NeuronPopulation{S<:AbstractFloat, T<:AbstractFloat}
     weights::Array{S, 2}
     weight_update::Function
     out_spikes::Array{Spike, 1}
-    delay_::T
 end
 
