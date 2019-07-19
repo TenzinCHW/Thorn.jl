@@ -2,7 +2,7 @@
 
 struct Spike{T<:AbstractFloat}
     neuron_index::Int # Global index of neuron that fired this spike
-    time_delta::T # Time since preceding spike
+    time_delta::T # Time in ms since preceding spike
 end
 
 struct SpikeQueue
