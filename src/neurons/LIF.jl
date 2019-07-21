@@ -1,6 +1,6 @@
 include("neuron.jl")
 
-mutable struct LIF{T<:AbstractFloat} <: Neuron
+mutable struct LIF{T<:AbstractFloat} <: ProcessingNeuron
     u::T
     rest_u::T
     reset_u::T
