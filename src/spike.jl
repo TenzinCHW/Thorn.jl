@@ -1,7 +1,9 @@
 # Spikes are events; all their charge is delivered in an instant (like a Dirac-delta function).
 
-struct Spike{T<:AbstractFloat}
-    neuron_index::Int # Global index of neuron that fired this spike
+abstract type Spike end
+
+struct LIFSpike{T<:AbstractFloat}
+    neuron_index::UInt # Localindex of neuron that fired this spike
     time::T # Global time in ms since start of simulation
 end
 
