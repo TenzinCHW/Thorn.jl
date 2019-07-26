@@ -24,8 +24,9 @@ struct Cortex{T<:AbstractFloat}
         new()
     end
 
-    # TODO Constructor with connectivity matrix (use rand() for generating weights
-    function Cortex()
+    # Constructor with connectivity matrix (use rand() for generating weights
+    function Cortex(input_neuron_types::Array{Pair{DataType, UInt}, 1}, neuron_types::Array{Pair{DataType, UInt}, 1}, conn::Array{Bool, 2})
+        Cortex(input_neuron_types, neuron_types, conn, rand)
     end
 end
 
@@ -47,7 +48,6 @@ end
 function process_next_spike(cortex::Cortex)
     # Take the head spike from out_spikes queue of each population with smallest time property
     pop_id, spike = pop_next_spike(cortex.populations)
-    connectivity = cortex.weights .!= nothing # TODO shift this into the constructor of Cortex
     inds = findall(cortex.connectivity_matrix[:,pop_id])
     for i in inds
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
@@ -56,10 +56,10 @@ function process_next_spike(cortex::Cortex)
         process_spike!(pop, weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spikes! to generate output spikes for each of those populations
         is = findall(cortex.connectivity_matrix[pop.id,:])
-        _, s, _ = get_next_spike(cortex.populations[is])
-        output_spikes!(p, s)
+        _, next_spike, _ = get_next_spike(cortex.populations[is])
+        output_spikes!(pop, next_spike)
         #  Call update_weights! to update the weights for those populations that just processed the spike
-        update_weights!(pop, weights, spike)
+        update_weights!(pop, weights, spike, next_spike)
     end
 end
 
