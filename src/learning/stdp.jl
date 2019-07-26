@@ -4,5 +4,6 @@
 function stdp!(neuron::Neuron, w::AbstractFloat, prev_spike::Spike, next_spike::Spike)
     # TODO Update based on time difference between prev_spike and neuron.last_out
     # TODO Update based on time difference between neuron.last_out and next_spike
+    # TODO what happens if neuron.last_out is nothing
 end
 
