@@ -7,6 +7,7 @@ module LIFNeuron
         u::T
         rest_u::T
         reset_u::T
+        alpha::T
         tau::T
         thresh::T
         resist::T
@@ -21,10 +22,11 @@ module LIFNeuron
     def_u = 0
     def_rest_u = 0
     def_reset_u = -5
+    def_alpha = 1
     def_tau = 1
     def_thresh = 5
     def_resist = 0.5
-    NeuronStruct(id::Int) = NeuronStruct(id, def_u, def_rest_u, def_reset_u, def_tau, def_thresh, def_resist, nothing)
+    NeuronStruct(id::Int) = NeuronStruct(id, def_u, def_rest_u, def_reset_u, def_alpha, def_tau, def_thresh, def_resist, nothing)
 
     function state_update(neuron::NeuronStruct, weight::AbstractFloat, spike::Spike, prev_spike::Spike)
         decayed = e ^ - (spike.time - prev_spike.time)
