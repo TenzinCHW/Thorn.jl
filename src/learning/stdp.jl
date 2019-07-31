@@ -1,9 +1,18 @@
 # Okay this part is a bit more confusing...
 # Should I apply stdp for every pair of input and output spikes or just the last input and last output spike?
 # If I do just last input and last output, I just have to apply a weight update before processing each input spike and after each output spike
-function stdp!(neuron::Neuron, w::AbstractFloat, prev_spike::Spike, next_spike::Spike)
-    # TODO Update based on time difference between prev_spike and neuron.last_out
-    # TODO Update based on time difference between neuron.last_out and next_spike
-    # TODO what happens if neuron.last_out is nothing
+function stdp(neuron::Neuron, lr::AbstractFloat, w::AbstractFloat, prev_spike::Spike, next_spike::Spike)
+    alpha, last_out, tau = neuron.alpha, neuron.last_out, neuron.tau
+    if !(last_out == nothing)
+        # Update based on time difference between prev_spike and neuron.last_out
+        weaken = - alpha * exponent(last_out.time, next_spike.time, tau)
+        # Update based on time difference between neuron.last_out and next_spike
+        strengthen = exponent(prev_spike.time, last_out.time, tau)
+        lr * strengthen + weaken
+    end
+end
+
+function exponent(pre, post, tau)
+    exp((post - pre) / tau)
 end
 
