@@ -3,21 +3,22 @@ include("../neurons/neuron.jl")
 
 abstract type NeuronPopulation end
 
-mutable struct ProcessingNeuronPopulation{S<:AbstractFloat, T<:AbstractFloat} <: NeuronPopulation
+mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
     id::UInt
     neurons::Array{ProcessingNeuron, 1}
     state_update::Function
     output_spike::Function # Takes in single neuron, produces next spike produced by it or nothing
     weight_update::Function
+    lr::T # Learning rate
     out_spikes::Array{Spike, 1}
     last_spike::Spike
 
-    function ProcessingNeuronPopulation(id::Int, neuron_type::Module, sz::Int, weight_update::Function)
+    function ProcessingNeuronPopulation(id::Int, neuron_type::Module, sz::Int, weight_update::Function, lr::AbstractFloat)
         if (id < 1 || sz < 1)
             error("sz and id must be > 0")
         end
         neurons = [neuron_type.NeuronStruct(i) for i in 1:sz]
-        new(UInt(id), neurons, neuron_type.state_update, neuron_type.output_spike, weight_update, Array{Spike, 1}, nothing)
+        new{typeof(lr)}(UInt(id), neurons, neuron_type.state_update, neuron_type.output_spike, weight_update, lr, Array{Spike, 1}, nothing)
     end
 end
 
@@ -51,8 +52,7 @@ function flatten(arr::Array{Any, 1})::Array{Spike, 1}
 end
 
 function update_weights!(pop::NeuronPopulation, weights::Array{AbstractFloat, 1}, spike::Spike, next_spike::Spike)
-    # Update the given weights
-    weights = pop.weight_update.(pop.neurons, weights, spike, next_spike)
+    weights = pop.weight_update.(pop.neurons, pop.lr, weights, spike, next_spike)
 end
 
 struct InputNeuronPopulation <: NeuronPopulation

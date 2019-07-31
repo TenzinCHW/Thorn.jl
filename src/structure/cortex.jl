@@ -35,7 +35,8 @@ struct Cortex{T<:AbstractFloat}
                 end
             end
         end
-        new(input_populations, populations, weights, connectivity_matrix)
+        # wt_init() must return a single value of the same type as the weights
+        new{typeof(wt_init())}(input_populations, populations, weights, connectivity_matrix)
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
