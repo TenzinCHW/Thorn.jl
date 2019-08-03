@@ -1,4 +1,4 @@
-module RateInputNeuron
+module RateInput
     include("neuron.jl")
 
     struct NeuronStruct{T<:AbstractFloat} <: InputNeuron
