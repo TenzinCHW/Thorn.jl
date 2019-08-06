@@ -1,5 +1,5 @@
 include("../spike.jl")
-include("../neurons/neuron.jl")
+include("../neuron.jl")
 
 abstract type NeuronPopulation end
 
@@ -48,6 +48,7 @@ function flatten(arr::Array{Any, 1})::Array{Spike, 1}
                 push!(out, item)
             end
         end
+    end
     out
 end
 
@@ -59,18 +60,19 @@ struct InputNeuronPopulation <: NeuronPopulation
     id::UInt
     neurons::Array{InputNeuron, 1}
     generate_func::Function # Should take in a raw sensor input and an InputNeuron and gnerate output spikes, putting them into out_spikes
+    spiketype
     out_spikes::Array{Spike, 1}
 
-    function InputNeuronPopulation(id::Int, neuron_type::Module, sz::Int)
+    function InputNeuronPopulation(id::Int, neurontype::Module, sz::Int, spiketype)
         if (id < 1 || sz < 1)
             error("id and sz must be > 0")
         end
-        if !(neuron_type<:InputNeuron)
+        if !(neurontype<:InputNeuron)
             error("neuron_type must be a type of InputNeuron")
         end
 
-        neurons = [neuron_type.NeuronStruct() for i in 1:sz] # TODO Need the syntax for init an InputNeuron
-        new(UInt(id), neurons, neuron_type.generate_input, Array{Spike, 1})
+        neurons = [neurontype.NeuronStruct(i) for i in 1:sz]
+        new(UInt(id), neurons, neurontype.generate_input, spiketype, Array{Spike, 1})
     end
 end
 
