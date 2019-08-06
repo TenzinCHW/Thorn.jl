@@ -1,4 +1,4 @@
-include ("population.jl")
+include("population.jl")
 
 struct Cortex{T<:AbstractFloat}
     input_populations::Array{InputNeuronPopulation, 1}
@@ -7,17 +7,21 @@ struct Cortex{T<:AbstractFloat}
     connectivity_matrix::BitArray{2}
 
     # Constructor with connectivity_matrix and weight initialisation function
-    function Cortex(input_neuron_types::Array{Tuple{Module, Int, Function}, 1}, neuron_types::Array{Tuple{Module, Int, Function}, 1}, connectivity_matrix::BitArray{2}, wt_init::Function)
+    function Cortex(input_neuron_types::Array{Tuple{Module, Int, Function}, 1}, neuron_types::Array{Tuple{Module, Int, Function}, 1}, connectivity_matrix::BitArray{2}, wt_init::Function, spiketype::DataType)
         if !(isequal(size(connectivity_matrix)...))
             error("conn must be a square matrix")
         end
         if !(isequal(first(size(connectivity_matrix)), length(input_neuron_types) + length(neuron_types)))
             error("length of one side of conn must be equal to sum of lengths of input_neuron_types and neuron_types")
         end
+        if !(spiketype<:Spike)
+            error("spiketype must be a subtype of Spike")
+        end
+
         # Make the populations in the order given
         input_populations = Array{InputNeuronPopulation, 1}
         for i in eachindex(input_neuron_types)
-            push!(input_populations, InputNeuronPopulation(i, input_neuron_types[i]...))
+            push!(input_populations, InputNeuronPopulation(i, input_neuron_types[i]..., spiketype::DataType))
         end
 
         populations = Array{NeuronPopulation, 1}
@@ -47,8 +51,9 @@ end
 
 function process_sample!(cortex::Cortex, input::Array{Array{Number, 1}, 1})
     # Generate spike data from input; each array is for each corresponding input pop
-    for i in eachindex(input)
-        generate_input_spikes!(cortex.input_populations[i], input[i])
+    # If raw sensor data is 2D, flatten it
+    for (pop, data) in zip(cortex.input_populations, input)
+        generate_input_spikes!(pop, data)
     end
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
     while (any(length.(cortex.populations.out_spikes) .> 0))
@@ -62,9 +67,8 @@ function generate_input_spikes!(input_pop::InputNeuronPopulation, data::Array{Nu
     if !(isequal(length(data), length(input_pop.neurons)))
         error("Dimensions of data must match number of neurons")
     end
-    # If raw sensor data is 2D, the first dimension must represent space and second is time
     # Call generate_func for each vector of inputs in second dim, broadcast across the first dimension
-    input_pop.generate_func.(input_pop.neurons, data)
+    input_pop.generate_func.(input_pop.neurons, maxval, data, input_pop.spiketype)
     # Must sort the out_spikes of each InputNeuronPopulation after generating the spikes in reverse order based on time property of each spike
     sort!(input_pop.out_spikes, by=x->x.time, rev=true)
 end
