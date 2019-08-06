@@ -11,7 +11,7 @@ mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
     weight_update::Function
     lr::T # Learning rate
     out_spikes::Array{Spike, 1}
-    last_spike::Spike
+    last_spike::Union{Spike, Nothing}
 
     function ProcessingNeuronPopulation(id::Int, neuron_type::Module, sz::Int, weight_update::Function, lr::AbstractFloat)
         if (id < 1 || sz < 1)
