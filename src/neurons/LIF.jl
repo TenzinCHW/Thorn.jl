@@ -1,52 +1,44 @@
-module LIF
-    include("../neuron.jl")
-    include("../spike.jl")
+mutable struct LIFNeuron{T<:AbstractFloat} <: ProcessingNeuron
+    id::UInt
+    u::T
+    rest_u::T
+    reset_u::T
+    alpha::T
+    tau::T
+    thresh::T
+    resist::T
+    last_out::Union{Spike, Nothing}
 
-    mutable struct NeuronStruct{T<:AbstractFloat} <: ProcessingNeuron
-        id::UInt
-        u::T
-        rest_u::T
-        reset_u::T
-        alpha::T
-        tau::T
-        thresh::T
-        resist::T
-        last_out::Spike
-
-        function NeuronStruct(id::Int, u::T, rest_u::T, reset_u::T, alpha::T, tau::T, thresh::T, resist::T) where T<:AbstractFloat
-            new{typeof(u)}(UInt(id), u, rest_u, reset_u, alpha, tau, thresh, resist, nothing)
-        end
-
-        NeuronStruct(id::Int) = NeuronStruct(id, def_u, def_rest_u, def_reset_u, def_alpha, def_tau, def_thresh, def_resist)
+    function LIFNeuron(id::Int, u::T, rest_u::T, reset_u::T, alpha::T, tau::T, thresh::T, resist::T) where T<:AbstractFloat
+        new{typeof(u)}(UInt(id), u, rest_u, reset_u, alpha, tau, thresh, resist, nothing)
     end
 
-    # TODO Find good default values for reset_u, tau, thresh and resist
-    def_u = 0.
-    def_rest_u = 0.
-    def_reset_u = -5.
-    def_alpha = 1.
-    def_tau = 1.
-    def_thresh = 5.
-    def_resist = 0.5
+    LIFNeuron(id::Int) = LIFNeuron(id, def_u, def_rest_u, def_reset_u, def_alpha, def_tau, def_thresh, def_resist)
+end
 
-    function state_update(neuron::NeuronStruct, weight::AbstractFloat, spike::Spike, prev_spike::Spike)
-        if (prev_spike == nothing)
-            prev_spike_t = 0.
-        else
-            prev_spike_t = prev_spike.time
-        end
-        decayed = e ^ - (spike.time - prev_spike_t)
-        if (neuron.u >= neuron.rest_u)
-            decayed = - decayed
-        end
-        neuron.u = weight + decayed
+# TODO Find good default values for reset_u, tau, thresh and resist
+def_u = 0.
+def_rest_u = 0.
+def_reset_u = -5.
+def_alpha = 1.
+def_tau = 1.
+def_thresh = 5.
+def_resist = 0.5
+
+function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_spike::Union{S, Nothing}) where S<:Spike
+    prev_spike_t = (prev_spike == nothing) ? 0. : prev_spike.time
+    # TODO fix the equation for Leaky Integrate and Fire
+    decayed = exp(- (spike.time - prev_spike_t))
+    if (neuron.u >= neuron.rest_u)
+        decayed = - decayed
     end
+    neuron.u = weight + decayed
+end
 
-    function output_spike(neuron::NeuronStruct, spike::Spike, next_spike::Spike)
-        if (neuron.u >= neuron.thresh && spike.time <= next_spike.time)
-            neuron.u = neuron.reset_u
-            neuron.last_out = Spike(neuron.id, spike.time)
-            neuron.last_out
-        end
+function output_spike!(neuron::LIFNeuron, spike::Spike, next_spike::Spike)
+    if (neuron.u >= neuron.thresh && spike.time <= next_spike.time)
+        neuron.u = neuron.reset_u
+        neuron.last_out = LIFSpike(neuron.id, spike.time)
+        neuron.last_out
     end
 end

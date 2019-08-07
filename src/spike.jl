@@ -2,7 +2,7 @@
 
 abstract type Spike end
 
-struct LIFSpike{T<:AbstractFloat}
+struct LIFSpike{T<:AbstractFloat} <: Spike
     neuron_index::UInt # Localindex of neuron that fired this spike
     time::T # Global time in ms since start of simulation
 
