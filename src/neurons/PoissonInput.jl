@@ -18,7 +18,7 @@ struct PoissonInpNeuron{T<:AbstractFloat} <: InputNeuron
     end
 end
 
-function generate_input(neuron::PoissonInpNeuron{T}, maxval::T, sensor_inp::T, spiketype) where T<:AbstractFloat
+function generate_input(neuron::PoissonInpNeuron{T}, sensor_inp::T, maxval::T, spiketype) where T<:AbstractFloat
     time = 0
     spikes = spiketype[]
     rate = compute_rate(maxval, sensor_inp)
