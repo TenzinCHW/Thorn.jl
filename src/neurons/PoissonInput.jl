@@ -30,6 +30,6 @@ function generate_input(neuron::PoissonInpNeuron{T}, maxval::T, sensor_inp::T, s
     spikes
 end
 
-compute_rate(maxval, val) = val / maxval * (maxrate - minrate) + minrate
+compute_rate(maxval, val) = (val / maxval * (maxrate - minrate) + minrate) / 1000
 
 exprand(rate) = - log(1 - rand()) / rate
