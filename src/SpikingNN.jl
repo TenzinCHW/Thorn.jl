@@ -13,5 +13,8 @@ module SpikingNN
     LIFNeuron, PoissonInpNeuron, RateInpNeuron,
     state_update!, output_spike!, generate_input,
     NeuronPopulation, InputNeuronPopulation, ProcessingNeuronPopulation,
-    stdp
+    process_spike!, output_spikes!, generate_input_spikes!,
+    stdp,
+    Cortex,
+    process_sample!
 end
