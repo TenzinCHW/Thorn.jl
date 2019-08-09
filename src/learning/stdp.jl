@@ -8,7 +8,7 @@ function stdp(neuron::Neuron, lr::AbstractFloat, w::AbstractFloat, prev_spike::S
         weaken = - alpha * exponent(last_out.time, next_spike.time, tau)
         # Update based on time difference between neuron.last_out and next_spike
         strengthen = exponent(prev_spike.time, last_out.time, tau)
-        lr * strengthen + weaken
+        lr * (strengthen + weaken)
     end
 end
 
