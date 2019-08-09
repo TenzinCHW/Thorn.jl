@@ -23,7 +23,7 @@ function generate_input(neuron::PoissonInpNeuron{T}, sensor_inp::T, maxval::T, s
     spikes = spiketype[]
     rate = compute_rate(maxval, sensor_inp)
     while (time < neuron.sampleperiod)
-        dt = exprand(rate)
+        dt = randexp(rate)
         time += dt
         push!(spikes, spiketype(neuron.id, dt))
     end
@@ -32,4 +32,4 @@ end
 
 compute_rate(maxval, val) = (val / maxval * (maxrate - minrate) + minrate) / 1000
 
-exprand(rate) = - log(1 - rand()) / rate
+randexp(rate) = - log(1 - rand()) / rate
