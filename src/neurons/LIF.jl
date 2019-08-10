@@ -27,11 +27,9 @@ def_resist = 0.5
 
 function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_spike::Union{S, Nothing}) where S<:Spike
     prev_spike_t = (prev_spike == nothing) ? 0. : prev_spike.time
-    # TODO fix the equation for Leaky Integrate and Fire
-    decayed = exp(- (spike.time - prev_spike_t))
-    if (neuron.u >= neuron.rest_u)
-        decayed = - decayed
-    end
+    c = - neuron.tau * log(abs(neuron.u - neuron.u_rest))
+    dt = spike.time - prev_spike_t
+    decayed = neuron.u_rest + flipsign(exp(-(dt + c) / neuron.tau), neuron.u)
     neuron.u = weight + decayed
 end
 
