@@ -19,8 +19,9 @@ struct Cortex{T<:AbstractFloat}
         end
 
         populations = NeuronPopulation[]
+        num_inp_pop = length(input_populations)
         for i in eachindex(neuron_types)
-            push!(populations, ProcessingNeuronPopulation(i, neuron_types[i]...))
+            push!(populations, ProcessingNeuronPopulation(i + num_inp_pop, neuron_types[i]...))
         end
         populations = cat(input_populations, populations, dims=1)
 
@@ -61,15 +62,15 @@ function process_next_spike!(cortex::Cortex)
     inds = findall(cortex.connectivity_matrix[:, src_pop_id])
     for i in inds
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
-        src_pop = cortex.populations[i]
+        dst_pop = cortex.populations[i]
         weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
-        process_spike!(src_pop, weights, spike)
+        process_spike!(dst_pop, weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spike! to generate output spikes for each of those populations
-        all_src_pop_ind = findall(cortex.connectivity_matrix[src_pop.id,:])
+        all_src_pop_ind = findall(cortex.connectivity_matrix[i, :])
         _, next_spike, _ = get_next_spike(cortex.populations[all_src_pop_ind])
-        output_spike!(src_pop, spike, next_spike)
+        output_spike!(dst_pop, spike, next_spike)
         #  Call update_weights! to update the weights for those populations that just processed the spike
-        update_weights!(src_pop, weights, spike, next_spike)
+        update_weights!(dst_pop, weights, spike, next_spike)
     end
 end
 
@@ -80,8 +81,10 @@ end
 
 function get_next_spike(pops::Array{NeuronPopulation, 1})
     non_empty_pops = filter(has_out_spikes, pops)
-    lens = num_out_spikes.(non_empty_pops)
-    earliest_spikes = map((x, y)->x.out_spikes[y], non_empty_pops, lens)
+    if (isempty(non_empty_pops))
+        return nothing, nothing, nothing
+    end
+    earliest_spikes = map(x->x.out_spikes[end], non_empty_pops)
     s, ind = findmin(earliest_spikes)
     non_empty_pops, s, ind
 end

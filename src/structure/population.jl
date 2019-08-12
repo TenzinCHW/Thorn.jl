@@ -25,7 +25,7 @@ function process_spike!(pop::NeuronPopulation, weights::Array{T, 1}, spike::Spik
     pop.last_spike = spike
 end
 
-function output_spike!(pop::NeuronPopulation, spike::T, next_spike::T) where T<:Spike
+function output_spike!(pop::NeuronPopulation, spike::Spike, next_spike::Union{Spike, Nothing})
     new_spikes = flatten([output_spike!(n, spike, next_spike) for n in pop.neurons])
     # filter this based on the timing of next_spike coming into the pop then sort the filtered array
     for s in sort(new_spikes, by=x->x.time, rev=true)
@@ -47,8 +47,10 @@ function flatten(arr::Array)
     out
 end
 
-function update_weights!(pop::NeuronPopulation, weights::Array{AbstractFloat, 1}, spike::Spike, next_spike::Spike)
-    weights = pop.weight_update.(pop.neurons, pop.lr, weights, spike, next_spike)
+function update_weights!(pop::NeuronPopulation, weights::Array{T, 1}, spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
+    for (i, (n, w)) in enumerate(zip(pop.neurons, weights))
+        weights[i] = pop.weight_update(n, pop.lr, w, spike, next_spike)
+    end
 end
 
 struct InputNeuronPopulation <: NeuronPopulation

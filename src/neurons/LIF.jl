@@ -33,8 +33,8 @@ function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_
     neuron.u = weight + decayed
 end
 
-function output_spike!(neuron::LIFNeuron, spike::T, next_spike::T) where T<:Spike
-    if (neuron.u >= neuron.thresh && spike.time <= next_spike.time)
+function output_spike!(neuron::LIFNeuron, spike::T, next_spike::Union{T, Nothing}) where T<:Spike
+    if (neuron.u >= neuron.thresh && (next_spike == nothing || spike.time <= next_spike.time))
         neuron.u = neuron.reset_u
         neuron.last_out = LIFSpike(neuron.id, spike.time)
         neuron.last_out
