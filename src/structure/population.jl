@@ -28,8 +28,13 @@ end
 function output_spike!(pop::NeuronPopulation, spike::Spike, next_spike::Union{Spike, Nothing})
     new_spikes = flatten([output_spike!(n, spike, next_spike) for n in pop.neurons])
     # filter this based on the timing of next_spike coming into the pop then sort the filtered array
-    for s in sort(new_spikes, by=x->x.time, rev=true)
-        push!(pop.out_spikes, s) # This is faster than concat by 8x
+    for s in sort(new_spikes, by=x->x.time)
+        if (isempty(pop.out_spikes) || s.time <= pop.out_spikes[end].time)
+            push!(pop.out_spikes, s) # This is faster than concat by 8x
+        else
+            index = searchsortfirst(pop.out_spikes, s, by=x->x.time, rev=true)
+            insert!(pop.out_spikes, index, s)
+        end
     end
 end
 
