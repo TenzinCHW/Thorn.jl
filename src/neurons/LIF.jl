@@ -37,6 +37,5 @@ function output_spike!(neuron::LIFNeuron, spike::T, next_spike::Union{T, Nothing
     if (neuron.u >= neuron.thresh && (next_spike == nothing || spike.time <= next_spike.time))
         neuron.u = neuron.reset_u
         neuron.last_out = LIFSpike(neuron.id, spike.time)
-        neuron.last_out
     end
 end
