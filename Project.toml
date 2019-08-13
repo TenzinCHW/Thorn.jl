@@ -3,5 +3,8 @@ uuid = "d87a7e5a-a546-11e9-029a-ebfb0c165160"
 authors = ["Tenzin Chan <tenzin_chan@mymail.sutd.edu.sg>"]
 version = "0.1.0"
 
-[deps]
+[extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
