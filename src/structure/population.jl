@@ -38,6 +38,10 @@ function output_spike!(pop::NeuronPopulation, spike::Spike, next_spike::Union{Sp
     end
 end
 
+function reset!(pop::NeuronPopulation)
+    reset!.(pop.neurons)
+end
+
 function flatten(arr::Array)
     out = Spike[]
     for item in arr

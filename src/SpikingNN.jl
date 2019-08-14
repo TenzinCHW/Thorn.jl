@@ -11,7 +11,7 @@ module SpikingNN
     export Spike, LIFSpike,
     Neuron, ProcessingNeuron, InputNeuron,
     LIFNeuron, PoissonInpNeuron, RateInpNeuron,
-    state_update!, output_spike!, generate_input,
+    state_update!, output_spike!, reset!, generate_input,
     NeuronPopulation, InputNeuronPopulation, ProcessingNeuronPopulation,
     process_spike!, generate_input_spikes!,
     stdp,

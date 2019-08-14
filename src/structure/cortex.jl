@@ -69,8 +69,10 @@ function process_next_spike!(cortex::Cortex)
         all_src_pop_ind = findall(cortex.connectivity_matrix[i, :])
         _, next_spike, _ = get_next_spike(cortex.populations[all_src_pop_ind])
         output_spike!(dst_pop, spike, next_spike)
+        # TODO Find next spike among all the output spikes and then filter the new spikes based on their dependencies.
         #  Call update_weights! to update the weights for those populations that just processed the spike
         update_weights!(dst_pop, weights, spike, next_spike)
+        reset!(dst_pop)
     end
 end
 
