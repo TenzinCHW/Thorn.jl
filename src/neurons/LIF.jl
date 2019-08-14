@@ -6,31 +6,29 @@ mutable struct LIFNeuron{T<:AbstractFloat} <: ProcessingNeuron
     alpha::T
     tau::T
     thresh::T
-    resist::T
     last_out::Union{Spike, Nothing}
+    u_func::Function # u as a function of time diff between two spikes
 
-    function LIFNeuron(id::Int, u::T, rest_u::T, reset_u::T, alpha::T, tau::T, thresh::T, resist::T) where T<:AbstractFloat
-        new{typeof(u)}(UInt(id), u, rest_u, reset_u, alpha, tau, thresh, resist, nothing)
+    function LIFNeuron(id::Int, u::T, rest_u::T, reset_u::T, alpha::T, tau::T, thresh::T, u_func) where T<:AbstractFloat
+        new{typeof(u)}(UInt(id), u, rest_u, reset_u, alpha, tau, thresh, nothing, u_func)
     end
 
-    LIFNeuron(id::Int) = LIFNeuron(id, def_u, def_rest_u, def_reset_u, def_alpha, def_tau, def_thresh, def_resist)
+    LIFNeuron(id::Int) = LIFNeuron(id, def_u, def_rest_u, def_reset_u, def_alpha, def_tau, def_thresh, dt->0)
 end
 
-# TODO Find good default values for reset_u, tau, thresh and resist
+# TODO Find good default values for reset_u, tau and thresh
 def_u = 0.
 def_rest_u = 0.
 def_reset_u = -5.
 def_alpha = 1.
 def_tau = 1.
 def_thresh = 5.
-def_resist = 0.5
 
 function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_spike::Union{S, Nothing}) where S<:Spike
     prev_spike_t = (prev_spike == nothing) ? 0. : prev_spike.time
-    c = - neuron.tau * log(abs(neuron.u - neuron.rest_u))
-    dt = spike.time - prev_spike_t
-    decayed = neuron.rest_u + flipsign(exp(-(dt + c) / neuron.tau), neuron.u)
-    neuron.u = weight + decayed
+    inter_spike_t = spike.time - prev_spike_t
+    neuron.u_func = make_u_func(neuron.u, neuron.rest_u, neuron.tau, weight, inter_spike_t)
+    neuron.u = neuron.u_func(inter_spike_t)
 end
 
 function output_spike!(neuron::LIFNeuron, spike::T, next_spike::Union{T, Nothing}) where T<:Spike
@@ -39,3 +37,12 @@ function output_spike!(neuron::LIFNeuron, spike::T, next_spike::Union{T, Nothing
         neuron.last_out = LIFSpike(neuron.id, spike.time)
     end
 end
+
+function make_u_func(u, rest_u, tau, weight, inter_spike_t)
+    function u_func(dt)
+        c = - tau * log(abs(u - rest_u))
+        decayed = rest_u + flipsign(exp(-(dt + c) / tau), u)
+        dt >= inter_spike_t ? weight + decayed : decayed
+    end
+end
+
