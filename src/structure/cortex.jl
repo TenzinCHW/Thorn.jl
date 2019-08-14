@@ -54,6 +54,7 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
     while (any(length.(map(x->x.out_spikes, cortex.populations)) .> 0))
         process_next_spike!(cortex)
     end
+    reset!(dst_pop)
 end
 
 function process_next_spike!(cortex::Cortex)
@@ -72,7 +73,6 @@ function process_next_spike!(cortex::Cortex)
         # TODO Find next spike among all the output spikes and then filter the new spikes based on their dependencies.
         #  Call update_weights! to update the weights for those populations that just processed the spike
         update_weights!(dst_pop, weights, spike, next_spike)
-        reset!(dst_pop)
     end
 end
 
