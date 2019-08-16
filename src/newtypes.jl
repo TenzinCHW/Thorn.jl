@@ -1,5 +1,5 @@
 macro newprocessingneuron()
-    ex = :($(Expr(:toplevel, :(import SpikingNN.state_update!), :(import SpikingNN.output_spike!))))
+    ex = :($(Expr(:toplevel, :(import SpikingNN.state_update!), :(import SpikingNN.output_spike!), :(import SpikingNN.reset!))))
 end
 
 macro newinputneuron()
