@@ -13,7 +13,7 @@ mutable struct LIFNeuron{T<:AbstractFloat} <: ProcessingNeuron
         new{typeof(u)}(UInt(id), u, rest_u, reset_u, alpha, tau, thresh, nothing, u_func)
     end
 
-    LIFNeuron(id::Int) = LIFNeuron(id, def_u, def_rest_u, def_spike_u, def_alpha, def_tau, def_thresh, dt->0)
+    LIFNeuron(id::Int) = LIFNeuron(id, def_u, def_rest_u, def_spike_u, def_alpha, def_tau, def_thresh, dt->def_u)
 end
 
 # TODO Find good default values for reset_u, tau and thresh
