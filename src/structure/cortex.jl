@@ -1,5 +1,6 @@
 struct Cortex{T<:AbstractFloat}
     input_populations::Array{InputNeuronPopulation, 1}
+    processing_populations::Array{ProcessingNeuronPopulation, 1}
     populations::Array{NeuronPopulation, 1}
     weights::Dict{Pair{Int, Int}, Array{T, 2}} # Input is along 2nd dimension
     connectivity_matrix::BitArray{2}
@@ -18,12 +19,12 @@ struct Cortex{T<:AbstractFloat}
             push!(input_populations, InputNeuronPopulation(i, input_neuron_types[i]..., spiketype))
         end
 
-        populations = NeuronPopulation[]
+        processing_populations = ProcessingNeuronPopulation[]
         num_inp_pop = length(input_populations)
         for i in eachindex(neuron_types)
-            push!(populations, ProcessingNeuronPopulation(i + num_inp_pop, neuron_types[i]...))
+            push!(processing_populations, ProcessingNeuronPopulation(i + num_inp_pop, neuron_types[i]...))
         end
-        populations = cat(input_populations, populations, dims=1)
+        populations = vcat(input_populations, processing_populations)
 
         # Make the weights and insert into a Dict
         weights = Dict{Pair{Int, Int}, Array{typeof(wt_init()), 2}}()
@@ -35,7 +36,7 @@ struct Cortex{T<:AbstractFloat}
             end
         end
         # wt_init() must return a single value of the same type as the weights
-        new{typeof(wt_init())}(input_populations, populations, weights, connectivity_matrix)
+        new{typeof(wt_init())}(input_populations, processing_populations, populations, weights, connectivity_matrix)
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
@@ -55,13 +56,15 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
         # Take the head spike from out_spikes queue of each population with smallest time property
         src_pop_id, spike = pop_next_spike!(cortex.populations)
         process_spike!(cortex, src_pop_id, spike)
+        # TODO Monitor state here
     end
+    # Reset all ProcessingNeuronPopulation in cortex
     reset!(cortex)
 end
 
 function process_spike!(cortex::Cortex, src_pop_id::UInt, spike::Spike)
-    inds = findall(cortex.connectivity_matrix[:, src_pop_id])
-    for i in inds
+    dst_pop_ids = findall(cortex.connectivity_matrix[:, src_pop_id])
+    for i in dst_pop_ids
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
         dst_pop = cortex.populations[i]
         weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
@@ -95,4 +98,4 @@ has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
 
 num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
-reset!(cortex::Cortex) = reset!.(filter(x->isa(x, ProcessingNeuronPopulation), cortex.populations))
+reset!(cortex::Cortex) = reset!.(cortex.processing_populations)
