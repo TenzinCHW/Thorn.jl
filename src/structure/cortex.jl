@@ -54,7 +54,7 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
     while (any(length.(map(x->x.out_spikes, cortex.populations)) .> 0))
         process_next_spike!(cortex)
     end
-    reset!(dst_pop)
+    reset!(cortex)
 end
 
 function process_next_spike!(cortex::Cortex)
@@ -95,3 +95,4 @@ has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
 
 num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
+reset!(cortex::Cortex) = reset!.(filter(x->isa(x, ProcessingNeuronPopulation), cortex.populations))
