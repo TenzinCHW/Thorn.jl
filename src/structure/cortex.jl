@@ -6,11 +6,7 @@ struct Cortex{T<:AbstractFloat}
     connectivity_matrix::BitArray{2}
 
     # Constructor with connectivity_matrix and weight initialisation function
-    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Array{Tuple{UnionAll, Int, T, S}, 1}, connectivity_matrix::BitArray{2}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
-        !(isequal(size(connectivity_matrix)...)) ? error("conn must be a square matrix") : nothing
-        if !(isequal(first(size(connectivity_matrix)), length(input_neuron_types) + length(neuron_types)))
-            error("length of one side of conn must be equal to sum of lengths of input_neuron_types and neuron_types")
-        end
+    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Array{Tuple{UnionAll, Int, T, S}, 1}, connectivity::Dict{Int, Int}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         # Make the populations in the order given
@@ -25,6 +21,12 @@ struct Cortex{T<:AbstractFloat}
             push!(processing_populations, ProcessingNeuronPopulation(i + num_inp_pop, neuron_types[i]...))
         end
         populations = vcat(input_populations, processing_populations)
+        num_pop = length(populations)
+
+        connectivity_matrix = BitArray(zeros(num_pop, num_pop))
+        for (i, j) in connectivity
+            connectivity_matrix[j, i] = true
+        end
 
         # Make the weights and insert into a Dict
         weights = Dict{Pair{Int, Int}, Array{typeof(wt_init()), 2}}()
@@ -40,8 +42,8 @@ struct Cortex{T<:AbstractFloat}
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
-    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Array{Tuple{UnionAll, Int, T, S}, 1}, conn::BitArray{2}, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
-        Cortex(input_neuron_types, neuron_types, conn, rand, spiketype)
+    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Array{Tuple{UnionAll, Int, T, S}, 1}, connectivity::Dict{Int, Int}, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+        Cortex(input_neuron_types, neuron_types, connectivity, rand, spiketype)
     end
 end
 
