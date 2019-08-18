@@ -51,7 +51,7 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
         generate_input_spikes!(pop, data, maxval)
     end
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
-    while (any(length.(map(x->x.out_spikes, cortex.populations)) .> 0))
+    while (any(has_out_spikes.(cortex.populations)))
         # Take the head spike from out_spikes queue of each population with smallest time property
         src_pop_id, spike = pop_next_spike!(cortex.populations)
         process_spike!(cortex, src_pop_id, spike)
