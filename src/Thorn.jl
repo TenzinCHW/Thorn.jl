@@ -8,6 +8,7 @@ module Thorn
     include("learning/stdp.jl")
     include("newtypes.jl")
     include("monitor/monitor.jl")
+    include("monitor/plotting.jl")
 
     export Spike, LIFSpike,
     Neuron, ProcessingNeuron, InputNeuron,
@@ -17,7 +18,7 @@ module Thorn
     process_spike!, generate_input_spikes!,
     stdp,
     Cortex,
-    process_sample!,
+    process_sample!, population_dependency, dependent_populations,
     Monitor,
-    monitor!, collapse
+    monitor!, collapse, gridify
 end
