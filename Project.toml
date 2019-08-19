@@ -1,5 +1,5 @@
-name = "SpikingNN"
-uuid = "d87a7e5a-a546-11e9-029a-ebfb0c165160"
+name = "Thorn"
+uuid = "0ee5c03e-c25f-11e9-3953-ad1d99449e47"
 authors = ["Tenzin Chan <tenzin_chan@mymail.sutd.edu.sg>"]
 version = "0.1.0"
 
