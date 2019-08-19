@@ -60,24 +60,24 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
     while (any(has_out_spikes.(cortex.populations)))
         # Take the head spike from out_spikes queue of each population with smallest time property
-        src_pop_id, spike = pop_next_spike!(cortex.populations)
-        process_spike!(cortex, src_pop_id, spike)
-        !isnothing(extractors) ? monitor(cortex, extractors, record) : nothing
-        push!(spikes, (src_pop_id, spike))
+        pop_spike = pop_next_spike!(cortex.populations)
+        process_spike!(cortex, pop_spike...)
+        !isnothing(extractors) ? monitor!(cortex, pop_spike, extractors, record) : nothing
+        push!(spikes, pop_spike)
     end
     !isnothing(record) ? record = Dict(k=>collapse(v) for (k, v) in record) : nothing
     spikes, record
 end
 
 function process_spike!(cortex::Cortex, src_pop_id::UInt, spike::Spike)
-    dst_pop_ids = findall(cortex.connectivity_matrix[:, src_pop_id])
+    dst_pop_ids = dependent_populations(cortex, src_pop_id)
     for i in dst_pop_ids
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
         dst_pop = cortex.populations[i]
         weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
         process_spike!(dst_pop, weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spike! to generate output spikes for each of those populations
-        all_src_pop_ind = findall(cortex.connectivity_matrix[i, :])
+        all_src_pop_ind = population_dependency(cortex, i)
         _, next_spike, _ = get_next_spike(cortex.populations[all_src_pop_ind])
         output_spike!(dst_pop, spike, next_spike)
         # TODO Find next spike among all the output spikes and then filter the new spikes based on their dependencies.
@@ -107,5 +107,9 @@ has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
 num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
 reset!(cortex::Cortex) = reset!.(cortex.processing_populations)
+
+dependent_populations(c::Cortex, i::UInt) = UInt.(findall(c.connectivity_matrix[:, i]))
+
+population_dependency(c::Cortex, i::UInt) = UInt.(findall(c.connectivity_matrix[i, :]))
 
 timing(s::Spike) = s.time
