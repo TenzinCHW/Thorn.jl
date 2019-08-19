@@ -47,21 +47,23 @@ struct Cortex{T<:AbstractFloat}
     end
 end
 
-function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T) where {T<:AbstractFloat}
+function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T, extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
     # Generate spike data from input; each array is for each corresponding input pop
     # If raw sensor data is 2D, flatten it
     for (pop, data) in zip(cortex.input_populations, input)
         generate_input_spikes!(pop, data, maxval)
     end
+    # Reset all ProcessingNeuronPopulation in cortex to ensure they're in correct state before processing
+    reset!(cortex)
+    !isnothing(extractors) ? record = Dict(k=>Array{Dict, 1}() for (k, _) in extractors) : record = nothing
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
     while (any(has_out_spikes.(cortex.populations)))
         # Take the head spike from out_spikes queue of each population with smallest time property
         src_pop_id, spike = pop_next_spike!(cortex.populations)
         process_spike!(cortex, src_pop_id, spike)
-        # TODO Monitor state here
+        !isnothing(extractors) ? monitor(cortex, extractors, record) : nothing
     end
-    # Reset all ProcessingNeuronPopulation in cortex
-    reset!(cortex)
+    record
 end
 
 function process_spike!(cortex::Cortex, src_pop_id::UInt, spike::Spike)
@@ -77,6 +79,7 @@ function process_spike!(cortex::Cortex, src_pop_id::UInt, spike::Spike)
         output_spike!(dst_pop, spike, next_spike)
         # TODO Find next spike among all the output spikes and then filter the new spikes based on their dependencies.
         #  Call update_weights! to update the weights for those populations that just processed the spike
+        @views weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
         update_weights!(dst_pop, weights, spike, next_spike)
     end
 end
@@ -88,12 +91,12 @@ end
 
 function get_next_spike(pops::Array{NeuronPopulation, 1})
     non_empty_pops = filter(has_out_spikes, pops)
-    if (isempty(non_empty_pops))
+    if isempty(non_empty_pops)
         return nothing, nothing, nothing
     end
     earliest_spikes = map(x->x.out_spikes[end], non_empty_pops)
-    s, ind = findmin(earliest_spikes)
-    non_empty_pops, s, ind
+    _, ind = findmin(timing.(earliest_spikes))
+    non_empty_pops, earliest_spikes[ind], ind
 end
 
 has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
@@ -101,3 +104,5 @@ has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
 num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
 reset!(cortex::Cortex) = reset!.(cortex.processing_populations)
+
+timing(s::Spike) = s.time

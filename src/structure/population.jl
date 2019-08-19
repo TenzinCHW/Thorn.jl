@@ -56,7 +56,7 @@ function flatten(arr::Array)
     out
 end
 
-function update_weights!(pop::NeuronPopulation, weights::Array{T, 1}, spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
+function update_weights!(pop::NeuronPopulation, weights::SubArray{T, 1}, spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
     for (i, (n, w)) in enumerate(zip(pop.neurons, weights))
         weights[i] = pop.weight_update(n, pop.lr, w, spike, next_spike)
     end
