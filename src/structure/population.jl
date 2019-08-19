@@ -50,7 +50,7 @@ function flatten(arr::Array)
                 push!(out, i)
             end
         else
-            item != nothing ? push!(out, item) : nothing
+            !isnothing(item) ? push!(out, item) : nothing
         end
     end
     out

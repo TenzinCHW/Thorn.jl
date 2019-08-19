@@ -25,14 +25,14 @@ def_tau = 1.
 def_thresh = 5.
 
 function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_spike::Union{S, Nothing}) where S<:Spike
-    prev_spike_t = (prev_spike == nothing) ? 0. : prev_spike.time
+    prev_spike_t = isnothing(prev_spike) ? 0. : prev_spike.time
     inter_spike_t = spike.time - prev_spike_t
     neuron.u_func = make_u_func(neuron.u, neuron.rest_u, neuron.tau, weight, inter_spike_t)
     neuron.u = neuron.u_func(inter_spike_t)
 end
 
 function output_spike!(neuron::LIFNeuron, spike::T, next_spike::Union{T, Nothing}) where T<:Spike
-    if (neuron.u >= neuron.thresh && (next_spike == nothing || spike.time <= next_spike.time))
+    if (neuron.u >= neuron.thresh && (isnothing(next_spike) || spike.time <= next_spike.time))
         neuron.u = neuron.spike_u
         neuron.last_out = LIFSpike(neuron.id, spike.time)
     end
