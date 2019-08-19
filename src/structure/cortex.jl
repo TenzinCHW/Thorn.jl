@@ -56,14 +56,16 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
     # Reset all ProcessingNeuronPopulation in cortex to ensure they're in correct state before processing
     reset!(cortex)
     !isnothing(extractors) ? record = Dict(k=>Array{Dict, 1}() for (k, _) in extractors) : record = nothing
+    spikes = Tuple{UInt, Spike}[]
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
     while (any(has_out_spikes.(cortex.populations)))
         # Take the head spike from out_spikes queue of each population with smallest time property
         src_pop_id, spike = pop_next_spike!(cortex.populations)
         process_spike!(cortex, src_pop_id, spike)
         !isnothing(extractors) ? monitor(cortex, extractors, record) : nothing
+        push!(spikes, (src_pop_id, spike))
     end
-    record
+    spikes, record
 end
 
 function process_spike!(cortex::Cortex, src_pop_id::UInt, spike::Spike)
