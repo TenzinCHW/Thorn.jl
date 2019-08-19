@@ -65,6 +65,7 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
         !isnothing(extractors) ? monitor(cortex, extractors, record) : nothing
         push!(spikes, (src_pop_id, spike))
     end
+    !isnothing(record) ? record = Dict(k=>collapse(v) for (k, v) in record) : nothing
     spikes, record
 end
 
