@@ -7,6 +7,7 @@ module SpikingNN
     include("structure/cortex.jl")
     include("learning/stdp.jl")
     include("newtypes.jl")
+    include("monitor/monitor.jl")
 
     export Spike, LIFSpike,
     Neuron, ProcessingNeuron, InputNeuron,
@@ -16,5 +17,7 @@ module SpikingNN
     process_spike!, generate_input_spikes!,
     stdp,
     Cortex,
-    process_sample!
+    process_sample!,
+    Monitor,
+    monitor!, collapse
 end
