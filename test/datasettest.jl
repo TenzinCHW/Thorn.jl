@@ -7,7 +7,9 @@ for item in dset
 end
 
 swaptraintest!(dset, "test")
-resizeset!(dset, 100)
+@test length(dset.activeset) == 2
+resizeset!(dset, 50) # Make dataset 50% the full size
+@test length(dset.activeset) == 1
 shufflebyclass!(dset)
 
 dloader = Dataloader(dset, false)

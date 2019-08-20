@@ -38,7 +38,11 @@ function resizeset!(dataset::Dataset, percentage::Int64)
     error("percentage should be from 1 to 100")
     frac = 100 / percentage
     len = Int.(ceil.(length.(values(dataset.data))./frac))
-    dataset.activeset = sourcenames(dataset.data, dataset.classes)
+    data = Dict{String, Array{String, 1}}()
+    for (i, (k, v)) in enumerate(dataset.data)
+        data[k] = v[1:i]
+    end
+    dataset.activeset = sourcenames(data, dataset.classes)
 end
 
 # Gets class/filename as an array
@@ -93,7 +97,12 @@ mutable struct Dataloader
     end
 end
 
-Base.iterate(loader::Dataloader, i=1) = Base.iterate(loader.dataset, i)
+function Base.iterate(loader::Dataloader, i=1)
+    if i > length(loader) && loader.shuffle
+        Random.shuffle!(loader.dataset.activeset)
+    end
+    iterate(loader.dataset, i)
+end
 
 Base.length(loader::Dataloader) = length(loader.dataset)
 
