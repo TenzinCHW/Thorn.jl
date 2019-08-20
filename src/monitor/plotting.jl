@@ -6,7 +6,7 @@ function gridify(val_func::Array{Tuple{T, A}, 1}, spikes::Array{S, 1}, dt::T, ti
     y = T[]
     start = 0.
     for (s, func) in zip(spikes, last.(val_func))
-        dy = func.(filter(dx->start<=dx<s.time, x))
+        dy = func.(filter(dx->start<=dx<s.time, x) .- start)
         start = s.time
         for ddy in dy
             push!(y, ddy)
