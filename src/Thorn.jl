@@ -9,6 +9,8 @@ module Thorn
     include("newtypes.jl")
     include("monitor/monitor.jl")
     include("monitor/plotting.jl")
+    include("data/persistence.jl")
+    include("data/data.jl")
 
     export Spike, LIFSpike,
     Neuron, ProcessingNeuron, InputNeuron,
@@ -20,5 +22,10 @@ module Thorn
     Cortex,
     process_sample!, population_dependency, dependent_populations,
     Monitor,
-    monitor!, collapse, gridify
+    monitor!, collapse, gridify,
+    Datasource,
+    datasrcreadbits, datasrcwritebits!, datasrcread, datasrcwrite!, datasrcitems,
+    Dataset,
+    swaptraintest!, resizeset!, shufflebyclass!,
+    Dataloader
 end

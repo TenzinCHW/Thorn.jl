@@ -1,3 +1,5 @@
+using JLD2
+
 struct Datasource
     file::JLD2.JLDFile
 
@@ -20,15 +22,17 @@ function datasrcreadbits(datasrc::Datasource, path::String)::Array{UInt8, 2}
     datasrcread(datasrc, path)
 end
 
-function datasrcwrite(datasrc::Datasource, path::String, data::AbstractArray)
+function datasrcwrite!(datasrc::Datasource, path::String, data::AbstractArray)
     datasrc.file[path] = data
 end
 
-function datasrcwritebits(datasrc::Datasource, path::String, data::Array{UInt8, Any})
+function datasrcwritebits!(datasrc::Datasource, path::String, data::Array{UInt8, Any})
     datasrcwrite(datasrc, BitArray(data))
 end
 
 function datasrcitems(src::Datasource, pth::String)
     keys(src.file[pth])
 end
+
+Base.close(src::Datasource) = close(src.file)
 
