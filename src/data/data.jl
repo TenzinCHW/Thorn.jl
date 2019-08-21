@@ -101,7 +101,8 @@ function Base.iterate(loader::Dataloader, i=1)
     if i > length(loader) && loader.shuffle
         Random.shuffle!(loader.dataset.activeset)
     end
-    iterate(loader.dataset, i)
+    item, j = iterate(loader.dataset, i)
+    isnothing(item) ? nothing : loader.transform(item), j
 end
 
 Base.length(loader::Dataloader) = length(loader.dataset)
