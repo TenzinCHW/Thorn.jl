@@ -15,7 +15,7 @@ function gridify(val_func::Array{Tuple{T, A}, 1}, spikes::Array{S, 1}, dt::T, ti
     x, y
 end
 
-function isfloat(item::T) where T<:AbstractFloat
+function isfloat(item::AbstractFloat)
 end
 
 function makegrid(dt::T, et::T) where T<:AbstractFloat

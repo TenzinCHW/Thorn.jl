@@ -42,12 +42,13 @@ struct Cortex{T<:AbstractFloat}
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
-    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Array{Tuple{UnionAll, Int, T, S}, 1}, connectivity::Dict{Int, Int}, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+    function Cortex(input_neuron_types, neuron_types, connectivity, spiketype)
         Cortex(input_neuron_types, neuron_types, connectivity, rand, spiketype)
     end
 end
 
-function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T, extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
+# Assumes all inputs are normalized to 0. to 1.
+function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T=1., extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
     # Generate spike data from input; each array is for each corresponding input pop
     # If raw sensor data is 2D, flatten it
     for (pop, data) in zip(cortex.input_populations, input)
