@@ -47,3 +47,7 @@ x, y = gridify(uf[1,:], inp_spikes, 1., 1000.)
 @test isfloatarray(x, 1)
 @test isfloatarray(y, 1)
 
+x, y = rasterspikes(spikes, cortex)
+@test all(isfloatarray.(x, 1))
+@test all(isfloatarray.(y, 1))
+

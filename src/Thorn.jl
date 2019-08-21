@@ -22,7 +22,7 @@ module Thorn
     Cortex,
     process_sample!, population_dependency, dependent_populations,
     Monitor,
-    monitor!, collapse, gridify,
+    monitor!, collapse, rasterspikes, gridify,
     Datasource,
     datasrcreadbits, datasrcwritebits!, datasrcread, datasrcwrite!, datasrcitems,
     Dataset,
