@@ -5,7 +5,7 @@ mutable struct Dataset
     classes::Array{String, 1}
     traintestdir::String
     data::Dict{String, Array{String, 1}}
-    activeset::Array{String, 1}
+    activeset::Array{Tuple{String, String}, 1}
 
     function Dataset(basedir::String, traintestdir::String, activecls::Array{String, 1}=["all"])
         src = Datasource(basedir)
@@ -51,10 +51,12 @@ function sourcenames(data::Dict{String, Array{String, 1}},
     activedata = filter(cls_d->first(cls_d) in activecls, data)
     setnames = []
     for entry in activedata
-        push!(setnames, joinpath.(entry...))
+        append!(setnames, class_datapath.(entry...))
     end
-    collect(Iterators.flatten(setnames))
+    setnames
 end
+
+class_datapath(cls::String, path::String) = (cls, path)
 
 function shufflebyclass!(dataset::Dataset)
     for cls in dataset.classes
@@ -75,8 +77,9 @@ end
 Base.iterate(dataset::Dataset, i=1) = i > length(dataset.activeset) ? nothing : getnext(dataset, i)
 
 function getnext(dataset::Dataset, i)
-    fpath = (dataset.traintestdir, dataset.activeset[i])
-    readfrompath(dataset.datasrc, fpath...), i + 1
+    fpath = (dataset.traintestdir, dataset.activeset[i]...)
+    item = first(dataset.activeset[i]), readfrompath(dataset.datasrc, fpath...)
+    item, i + 1
 end
 
 Base.length(dataset::Dataset) = length(dataset.activeset)
@@ -88,12 +91,8 @@ mutable struct Dataloader
     shuffle::Bool
     transform::Function
 
-    function Dataloader(dataset, shuffle, transform)
+    function Dataloader(dataset, shuffle, transform=x->x)
         new(dataset, shuffle, transform)
-    end
-
-    function Dataloader(dataset, shuffle)
-        Dataloader(dataset, shuffle, x->x)
     end
 end
 
@@ -101,8 +100,13 @@ function Base.iterate(loader::Dataloader, i=1)
     if i > length(loader) && loader.shuffle
         Random.shuffle!(loader.dataset.activeset)
     end
-    item, j = iterate(loader.dataset, i)
-    isnothing(item) ? nothing : loader.transform(item), j
+    item = iterate(loader.dataset, i)
+    if isnothing(item)
+        return item
+    else
+        (cls, data), j = item
+        return ((cls, loader.transform(data)), j)
+    end
 end
 
 Base.length(loader::Dataloader) = length(loader.dataset)

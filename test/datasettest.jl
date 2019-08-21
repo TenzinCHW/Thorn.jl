@@ -2,7 +2,8 @@ fname = "hello.jld2"
 dset = Dataset(fname, "train")
 @test isa(dset["hello", 1], typeof(rand(5)))
 
-for item in dset
+for (cls, item) in dset
+    @test isa(cls, String)
     @test isa(item, typeof(rand(5)))
 end
 
@@ -13,7 +14,8 @@ resizeset!(dset, 50) # Make dataset 50% the full size
 shufflebyclass!(dset)
 
 dloader = Dataloader(dset, false)
-for item in dloader
+for (cls, item) in dloader
+    @test isa(cls, String)
     @test isa(item, typeof(rand(5)))
 end
 
