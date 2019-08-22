@@ -3,7 +3,7 @@
 # If I do just last input and last output, I just have to apply a weight update before processing each input spike and after each output spike
 function stdp(neuron::Neuron, lr::T, w::T, prev_spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
     alpha, last_out, tau = neuron.alpha, neuron.last_out, neuron.tau
-    if !any(isnothing.([last_out, next_spike]))
+    if !isnothing(last_out) && !isnothing(next_spike)
         # Update based on time difference between prev_spike and neuron.last_out
         weaken = - alpha * exponent(last_out.time, next_spike.time, tau)
         # Update based on time difference between neuron.last_out and next_spike
