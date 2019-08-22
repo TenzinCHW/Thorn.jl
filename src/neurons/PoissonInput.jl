@@ -9,23 +9,21 @@ struct PoissonInpNeuron{T<:AbstractFloat} <: InputNeuron
     minrate::T
     sampleperiod::T
 
-    function PoissonInpNeuron(id::Int)
+    function PoissonInpNeuron(id)
         PoissonInpNeuron(id, maxrate, minrate, sampleperiod)
     end
 
-    function PoissonInpNeuron(id::Int, maxrate, minrate, sampleperiod)
+    function PoissonInpNeuron(id, maxrate, minrate, sampleperiod)
         new{typeof(maxrate)}(UInt(id), maxrate, minrate, sampleperiod)
     end
 end
 
 function generate_input(neuron::PoissonInpNeuron{T}, sensor_inp::T, maxval::T, spiketype) where T<:AbstractFloat
-    time = 0
-    spikes = spiketype[]
     rate = compute_rate(maxval, sensor_inp)
-    while (time < neuron.sampleperiod)
-        dt = randexp(rate)
-        time += dt
-        push!(spikes, spiketype(neuron.id, dt))
+    expacc = ExpAccumulate(rate, neuron.sampleperiod)
+    spikes = spiketype[]
+    for t in expacc
+        push!(spikes, spiketype(neuron.id, t))
     end
     spikes
 end
@@ -33,3 +31,23 @@ end
 compute_rate(maxval, val) = (val / maxval * (maxrate - minrate) + minrate) / 1000
 
 randexp(rate) = - log(1 - rand()) / rate
+
+mutable struct ExpAccumulate{T<:AbstractFloat}
+    t::T
+    rate::T
+    max::T
+
+    function ExpAccumulate(rate, max)
+        T = typeof(rate)
+        new{T}(T(0), rate, max)
+    end
+end
+
+function Base.iterate(e::ExpAccumulate, i=0)
+    e.t += randexp(e.rate)
+    if e.t > e.max
+        return nothing
+    end
+    e.t, i + 1
+end
+
