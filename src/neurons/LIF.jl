@@ -29,7 +29,7 @@ def_homeostasis_a = 0.1
 def_homeostasis_b = 0.01
 
 function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_spike::Union{S, Nothing}) where S<:Spike
-    prev_spike_t = isnothing(prev_spike) ? 0. : prev_spike.time
+    prev_spike_t = isnothing(prev_spike) ? 0 : prev_spike.time
     inter_spike_t = spike.time - prev_spike_t
     #neuron.u_func = make_u_func(neuron.u, neuron.rest_u, neuron.tau, weight, inter_spike_t)
     #neuron.u = neuron.u_func(inter_spike_t)
