@@ -2,6 +2,11 @@
 
 abstract type Spike end
 
+Base.length(s::Spike) = 1
+
+Base.iterate(s::Spike) = s, nothing
+Base.iterate(s::Spike, n::Nothing) = nothing
+
 struct LIFSpike{T<:AbstractFloat} <: Spike
     neuron_index::UInt # Localindex of neuron that fired this spike
     time::T # Global time in ms since start of simulation
