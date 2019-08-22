@@ -59,7 +59,7 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
     !isnothing(extractors) ? record = Dict(k=>Array{Dict, 1}() for (k, _) in extractors) : record = nothing
     spikes = Tuple{UInt, Spike}[]
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
-    while (any(has_out_spikes.(cortex.populations)))
+    while any(has_out_spikes.(cortex.populations))
         # Take the head spike from out_spikes queue of each population with smallest time property
         pop_spike = pop_next_spike!(cortex.populations)
         process_spike!(cortex, pop_spike...)
