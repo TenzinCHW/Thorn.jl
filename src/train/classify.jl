@@ -1,5 +1,4 @@
-function test(cortex::Cortex, trainloader::Dataloader, testloader::Dataloader, funcs::Tuple{Function, Function}, popid::Int)
-    act, dec = funcs
+function test(cortex::Cortex, trainloader::Dataloader, testloader::Dataloader, act, dec, popid::Int)
     activity = probeactivity(act, cortex, trainloader, popid)
     assign = ClassAssignment(funcs..., activity, popid)
     result = classifyall(cortex, assign, testloader)
@@ -7,7 +6,8 @@ function test(cortex::Cortex, trainloader::Dataloader, testloader::Dataloader, f
     classes = trainloader.dataset.classes
     confusion = zeros(assign.numclasses, assign.numclasses)
     for (expected, actual) in result
-        ex, ac = getindex.(classes, findfirst.([expected actual]))
+        ex = classes[findfirst(expected)]
+        ac = classes[findfirst(actual)]
         confusion[ex, ac] += 1
     end
     accuracy = sum(map.(isequal.(result), last.(result))) / length(result)
