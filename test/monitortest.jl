@@ -6,21 +6,8 @@ function getu(c, ps)
     out
 end
 
-function getuf(c, ps)
-    out = Dict()
-    for pop in c.processing_populations
-        if first(ps) in population_dependency(c, pop.id)
-            out[pop.id] = [(n.u, n.u_func) for n in pop.neurons]
-        else
-            out[pop.id] = nothing
-        end
-    end
-    out
-end
-
 extractors = Dict("weights"=>(c, ps)->c.weights,
-                  "u"=>getu,
-                  "uf"=>getuf)
+                  "u"=>getu)
 
 input_neuron_types = [(PoissonInpNeuron, 5)]
 neuron_types = [(LIFNeuron, 5, stdp, 3.)]
@@ -41,9 +28,11 @@ u = monitor["u"][2]
 @test isfloatarray(weights, 3)
 @test isfloatarray(u, 2)
 
-uf = monitor["uf"][2]
-inp_spikes = last.(filter(s->first(s) == 1, spikes))
-x, y = gridify(uf[1,:], inp_spikes, 1., 1000.)
+indices = findall(s->first(s) == 1, spikes)
+inp_spikes = last.(spikes[indices])
+plot_u = u[:, indices]
+f = cortex.processing_populations[1].neurons[1].u_func
+x, y = gridify(plot_u[1,:], f, inp_spikes, 1., 1000.)
 @test isfloatarray(x, 1)
 @test isfloatarray(y, 1)
 
