@@ -1,7 +1,7 @@
 # InputNeuron test
 id = 1
 neuron = PoissonInpNeuron(id)
-data = rand()
+data = 1.
 maxval = 1.
 spikes = generate_input(neuron, data, maxval, LIFSpike)
 @test isa(spikes, Array{LIFSpike, 1})
