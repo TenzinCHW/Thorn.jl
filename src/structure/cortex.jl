@@ -99,7 +99,7 @@ function get_next_spike(pops::Array{NeuronPopulation, 1})
         return nothing, nothing, nothing
     end
     earliest_spikes = map(x->x.out_spikes[end], non_empty_pops)
-    _, ind = findmin(timing.(earliest_spikes))
+    _, ind = findmin([timing(s) for s in earliest_spikes])
     non_empty_pops, earliest_spikes[ind], ind
 end
 

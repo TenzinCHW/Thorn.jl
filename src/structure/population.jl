@@ -84,8 +84,8 @@ function generate_input_spikes!(input_pop::InputNeuronPopulation, data::Array{T,
         error("Dimensions of data must match number of neurons")
     end
     # Call generate_input for each vector of inputs in second dim, broadcast across the first dimension
-    spikes = flatten(generate_input.(input_pop.neurons, data, maxval, input_pop.spiketype))
-    for s in spikes
+    spikes = [generate_input(input_pop.neurons[i], data[i], maxval, input_pop.spiketype) for i in eachindex(input_pop.neurons)]
+    for s in flatten(spikes)
         push!(input_pop.out_spikes, s)
     end
     # Must sort the out_spikes of each InputNeuronPopulation after generating the spikes in reverse order based on time property of each spike
