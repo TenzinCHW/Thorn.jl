@@ -15,8 +15,6 @@ mutable struct LIFNeuron{T<:AbstractFloat} <: ProcessingNeuron
         u_func = make_u_func(rest_u, tau)
         new{typeof(u)}(UInt(id), u, rest_u, spike_u, alpha, tau, thresh, homeostasis_a, homeostasis_b, nothing, u_func)
     end
-
-    #LIFNeuron(id::Int) = LIFNeuron(id, def_u, def_rest_u, def_spike_u, def_alpha, def_tau, def_thresh, dt->def_u)
 end
 
 function make_u_func(rest_u, tau)
@@ -39,9 +37,6 @@ def_homeostasis_b = 0.01
 function state_update!(neuron::LIFNeuron, weight::AbstractFloat, spike::S, prev_spike::Union{S, Nothing}) where S<:Spike
     prev_spike_t = isnothing(prev_spike) ? 0 : prev_spike.time
     inter_spike_t = spike.time - prev_spike_t
-    #c = - neuron.tau * log(abs(neuron.u - neuron.rest_u))
-    #decayed = neuron.rest_u + flipsign(exp(-(inter_spike_t + c) / neuron.tau), neuron.u)
-    #neuron.u = weight + decayed
     neuron.u = weight + neuron.u_func(neuron.u, inter_spike_t)
 end
 
