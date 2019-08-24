@@ -3,6 +3,7 @@ abstract type NeuronPopulation end
 mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
     id::UInt
     neurons::Array{ProcessingNeuron, 1}
+    length
     weight_update::Function
     lr::T # Learning rate
     out_spikes::Array{Spike, 1}
@@ -13,7 +14,7 @@ mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
         !(neurontype<:ProcessingNeuron) ? error("neurontype must be a subtype of ProcessingNeuron") : nothing
         !isa(weight_update, Function) ? error("weight_update must be a function") : nothing
         neurons = [neurontype(i) for i in 1:sz]
-        new{typeof(lr)}(UInt(id), neurons, weight_update, lr, Spike[], nothing)
+        new{typeof(lr)}(UInt(id), neurons, sz, weight_update, lr, Spike[], nothing)
     end
 end
 
@@ -67,13 +68,14 @@ struct InputNeuronPopulation <: NeuronPopulation
     neurons::Array{InputNeuron, 1}
     spiketype::UnionAll
     out_spikes::Array{Spike, 1}
+    length
 
     function InputNeuronPopulation(id::Int, neurontype::UnionAll, sz::Int, spiketype::UnionAll)
         (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
         !(neurontype<:InputNeuron) ? error("neuron_type must be a type of InputNeuron") : nothing
 
         neurons = [neurontype(i) for i in 1:sz]
-        new(UInt(id), neurons, spiketype, spiketype[])
+        new(UInt(id), neurons, spiketype, spiketype[], sz)
     end
 end
 

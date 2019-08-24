@@ -33,7 +33,7 @@ struct Cortex{T<:AbstractFloat}
         for j in 1:size(connectivity_matrix, 2)
             for i in 1:size(connectivity_matrix, 1)
                 if (connectivity_matrix[i, j])
-                    weights[j=>i] = wt_init(length(populations[i].neurons), length(populations[j].neurons))
+                    weights[j=>i] = wt_init(populations[i].length, populations[j].length)
                 end
             end
         end
