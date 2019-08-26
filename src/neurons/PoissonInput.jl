@@ -19,7 +19,7 @@ struct PoissonInpNeuron{T<:AbstractFloat} <: InputNeuron
 end
 
 function generate_input(neuron::PoissonInpNeuron{T}, sensor_inp::T, maxval::T, spiketype) where T<:AbstractFloat
-    rate = compute_rate(maxval, sensor_inp)
+    rate = compute_rate(neuron, maxval, sensor_inp)
     expacc = ExpAccumulate(rate, neuron.sampleperiod)
     spikes = spiketype[]
     for t in expacc
@@ -28,7 +28,7 @@ function generate_input(neuron::PoissonInpNeuron{T}, sensor_inp::T, maxval::T, s
     spikes
 end
 
-compute_rate(maxval, val) = (val / maxval * (maxrate - minrate) + minrate) / 1000
+compute_rate(neuron, maxval, val) = (val / maxval * (neuron.maxrate - neuron.minrate) + neuron.minrate) / 1000
 
 randexp(rate) = - log(1 - rand()) / rate
 
