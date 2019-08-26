@@ -19,7 +19,7 @@ mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
 end
 
 function process_spike!(pop::NeuronPopulation, weights::Array{T, 1}, spike::Spike) where T<:AbstractFloat
-    for i in eachindex(pop.neurons)
+    for i in pop.length
         state_update!(pop.neurons[i], weights[i], spike, pop.last_spike)
     end
     # Assign the spike to the last_spike variable of the pop
