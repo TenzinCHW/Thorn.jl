@@ -1,6 +1,6 @@
 function rasterspikes(spikes::Array{Tuple{UInt, T}, 1}, cortex::Cortex) where T<:Spike
     currentht = 0.
-    dy = 0.1
+    dy = 1
     x = []
     y = []
     for (i, num) in enumerate(numneurons(cortex))
@@ -9,7 +9,7 @@ function rasterspikes(spikes::Array{Tuple{UInt, T}, 1}, cortex::Cortex) where T<
         ys = [currentht + last(s).neuron_index * dy for s in sp]
         push!(x, xs)
         push!(y, ys)
-        currentht += 0.5
+        currentht += dy * (num + 1)
     end
     x, y
 end
