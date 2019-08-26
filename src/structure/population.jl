@@ -3,7 +3,7 @@ abstract type NeuronPopulation end
 mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
     id::UInt
     neurons::Array{ProcessingNeuron, 1}
-    length
+    length::Int
     weight_update::Function
     lr::T # Learning rate
     out_spikes::Array{Spike, 1}
@@ -19,7 +19,7 @@ mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
 end
 
 function process_spike!(pop::NeuronPopulation, weights::Array{T, 1}, spike::Spike) where T<:AbstractFloat
-    for i in pop.length
+    for i in 1:pop.length
         state_update!(pop.neurons[i], weights[i], spike, pop.last_spike)
     end
     # Assign the spike to the last_spike variable of the pop
@@ -68,7 +68,7 @@ struct InputNeuronPopulation <: NeuronPopulation
     neurons::Array{InputNeuron, 1}
     spiketype::UnionAll
     out_spikes::Array{Spike, 1}
-    length
+    length::Int
 
     function InputNeuronPopulation(id::Int, neurontype::UnionAll, sz::Int, spiketype::UnionAll)
         (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
