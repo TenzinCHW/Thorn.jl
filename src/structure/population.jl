@@ -1,96 +1,41 @@
 abstract type NeuronPopulation end
 
-mutable struct ProcessingNeuronPopulation{T<:AbstractFloat} <: NeuronPopulation
-    id::UInt
-    neurons::Array{ProcessingNeuron, 1}
-    length::Int
-    weight_update::Function
-    lr::T # Learning rate
-    out_spikes::Array{Spike, 1}
-    last_spike::Union{Spike, Nothing}
+Base.length(p::NeuronPopulation) = 1
 
-    function ProcessingNeuronPopulation(id::Int, neurontype::UnionAll, sz::Int, weight_update, lr::AbstractFloat)
-        (id < 1 || sz < 1) ? error("sz and id must be > 0") : nothing
-        !(neurontype<:ProcessingNeuron) ? error("neurontype must be a subtype of ProcessingNeuron") : nothing
-        !isa(weight_update, Function) ? error("weight_update must be a function") : nothing
-        neurons = [neurontype(i) for i in 1:sz]
-        new{typeof(lr)}(UInt(id), neurons, sz, weight_update, lr, Spike[], nothing)
-    end
+Base.iterate(p::NeuronPopulation) = p, nothing
+Base.iterate(p::NeuronPopulation, n::Nothing) = nothing
+
+abstract type ProcessingPopulation <: NeuronPopulation end
+
+function update_weights!(pop::ProcessingPopulation, weights::SubArray{T, 1}, spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
+    weights .= pop.weight_update.(pop, weights, pop.last_out, spike, next_spike)
 end
 
-function process_spike!(pop::NeuronPopulation, weights::Array{T, 1}, spike::Spike) where T<:AbstractFloat
-    for i in 1:pop.length
-        state_update!(pop.neurons[i], weights[i], spike, pop.last_spike)
-    end
-    # Assign the spike to the last_spike variable of the pop
-    pop.last_spike = spike
-end
+abstract type InputPopulation <: NeuronPopulation end
 
-function output_spike!(pop::NeuronPopulation, spike::Spike, next_spike::Union{Spike, Nothing})
-    new_spikes = flatten([output_spike!(n, spike, next_spike) for n in pop.neurons])
-    # filter this based on the timing of next_spike coming into the pop then sort the filtered array
-    for s in sort(new_spikes, by=x->x.time)
-        if (isempty(pop.out_spikes) || s.time <= pop.out_spikes[end].time)
-            push!(pop.out_spikes, s) # This is faster than concat by 8x
-        else
-            index = searchsortfirst(pop.out_spikes, s, by=x->x.time, rev=true)
-            insert!(pop.out_spikes, index, s)
-        end
-    end
-end
-
-function reset!(pop::NeuronPopulation)
-    reset!.(pop.neurons)
-end
-
-function flatten(arr::Array)
-    out = Spike[]
-    for item in arr
-        if (isa(item, Array))
-            for i in item
-                push!(out, i)
-            end
-        else
-            !isnothing(item) ? push!(out, item) : nothing
-        end
-    end
-    out
-end
-
-function update_weights!(pop::NeuronPopulation, weights::SubArray{T, 1}, spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
-    for (i, (n, w)) in enumerate(zip(pop.neurons, weights))
-        weights[i] = pop.weight_update(n, pop.lr, w, spike, next_spike)
-    end
-end
-
-struct InputNeuronPopulation <: NeuronPopulation
-    id::UInt
-    neurons::Array{InputNeuron, 1}
-    spiketype::UnionAll
-    out_spikes::Array{Spike, 1}
-    length::Int
-
-    function InputNeuronPopulation(id::Int, neurontype::UnionAll, sz::Int, spiketype::UnionAll)
-        (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
-        !(neurontype<:InputNeuron) ? error("neuron_type must be a type of InputNeuron") : nothing
-
-        neurons = [neurontype(i) for i in 1:sz]
-        new(UInt(id), neurons, spiketype, spiketype[], sz)
-    end
-end
-
-function generate_input_spikes!(input_pop::InputNeuronPopulation, data::Array{T, 1}, maxval::T) where T<:AbstractFloat
+function generate_input_spikes!(input_pop::InputPopulation, data::Array{T, 1}, maxval::T) where T<:AbstractFloat
     # Given a set of raw sensor data and an InputNeuronPopulation, generate input spikes using the generate_input function for the InputNeuronPopulation
     # Length of array of raw data must match corresponding InputNeuronPopulation
-    if !(isequal(length(data), length(input_pop.neurons)))
+    if !(isequal(length(data), input_pop.length))
         error("Dimensions of data must match number of neurons")
     end
     # Call generate_input for each vector of inputs in second dim, broadcast across the first dimension
-    spikes = [generate_input(input_pop.neurons[i], data[i], maxval, input_pop.spiketype) for i in eachindex(input_pop.neurons)]
-    for s in flatten(spikes)
+    spikes = generate_input.(input_pop, 1:input_pop.length, data, maxval)
+    for s in Iterators.flatten(spikes)
         push!(input_pop.out_spikes, s)
     end
     # Must sort the out_spikes of each InputNeuronPopulation after generating the spikes in reverse order based on time property of each spike
     sort!(input_pop.out_spikes, by=x->x.time, rev=true);
+end
+
+function insertsorted(out_spikes::Array{S, 1}, spikes::Array{S, 1}) where S<:Spike
+    for s in sort(spikes, by=x->x.time, rev=true)
+        if isempty(out_spikes) || s.time <= out_spikes[end].time
+            push!(out_spikes, s)
+        else
+            index = searchsortfirst(out_spikes, s, by=x->x.time, rev=true)
+            insert!(pop.out_spikes, index, s)
+        end
+    end
 end
 

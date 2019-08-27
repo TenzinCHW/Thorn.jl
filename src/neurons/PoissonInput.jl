@@ -3,34 +3,31 @@ maxrate = 20.
 minrate = 1.
 sampleperiod = 1000. # Milliseconds
 
-struct PoissonInpNeuron{T<:AbstractFloat} <: InputNeuron
-    id::UInt
+struct PoissonInpPopulation{T<:AbstractFloat} <: InputPopulation
+    id::Int
     maxrate::T
     minrate::T
     sampleperiod::T
+    spiketype::UnionAll
+    out_spikes::Array{Spike, 1}
+    length::Int
 
-    function PoissonInpNeuron(id)
-        PoissonInpNeuron(id, maxrate, minrate, sampleperiod)
-    end
+    function PoissonInpPopulation(id, sz, spiketype, maxrate=maxrate, minrate=minrate, sampleperiod=sampleperiod)
+        (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
 
-    function PoissonInpNeuron(id, maxrate, minrate, sampleperiod)
-        new{typeof(maxrate)}(UInt(id), maxrate, minrate, sampleperiod)
+        new{typeof(maxrate)}(id, maxrate, minrate, sampleperiod, spiketype, spiketype[], sz)
     end
 end
 
-function generate_input(neuron::PoissonInpNeuron{T}, sensor_inp::T, maxval::T, spiketype) where T<:AbstractFloat
-    rate = compute_rate(neuron, maxval, sensor_inp)
-    expacc = ExpAccumulate(rate, neuron.sampleperiod)
-    spikes = spiketype[]
+function generate_input(pop::PoissonInpPopulation{T}, neuron_id::Int, sensor_inp::T, maxval::T) where T<:AbstractFloat
+    rate = compute_rate(pop, maxval, sensor_inp)
+    expacc = ExpAccumulate(rate, pop.sampleperiod)
+    spikes = pop.spiketype[]
     for t in expacc
-        push!(spikes, spiketype(neuron.id, t))
+        push!(spikes, pop.spiketype(neuron_id, t))
     end
     spikes
 end
-
-compute_rate(neuron, maxval, val) = (val / maxval * (neuron.maxrate - neuron.minrate) + neuron.minrate) / 1000
-
-randexp(rate) = - log(1 - rand()) / rate
 
 mutable struct ExpAccumulate{T<:AbstractFloat}
     t::T
@@ -50,4 +47,6 @@ function Base.iterate(e::ExpAccumulate, i=0)
     end
     e.t, i + 1
 end
+
+randexp(rate) = - log(1 - rand()) / rate
 

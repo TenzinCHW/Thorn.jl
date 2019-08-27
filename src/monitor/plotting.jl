@@ -3,7 +3,7 @@ function rasterspikes(spikes::Array{Tuple{UInt, T}, 1}, cortex::Cortex) where T<
     dy = 1
     x = []
     y = []
-    for (i, num) in enumerate(numneurons(cortex))
+    for (i, num) in enumerate(length.(cortex.populations))
         sp = filter(x->first(x) == i, spikes)
         xs = [last(s).time for s in sp]
         ys = [currentht + last(s).neuron_index * dy for s in sp]
@@ -13,8 +13,6 @@ function rasterspikes(spikes::Array{Tuple{UInt, T}, 1}, cortex::Cortex) where T<
     end
     x, y
 end
-
-numneurons(cortex::Cortex) = [length(pop.neurons) for pop in cortex.populations]
 
 function gridify(val::Array{T, 1}, diffeq, spikes::Array{S, 1}, dt::T, time_end::T) where {T<:AbstractFloat, S<:Spike, A}
     # val is an array of initial values of the diffeq corresponding to the times of the spikes

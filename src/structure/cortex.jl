@@ -1,6 +1,6 @@
 struct Cortex{T<:AbstractFloat}
-    input_populations::Array{InputNeuronPopulation, 1}
-    processing_populations::Array{ProcessingNeuronPopulation, 1}
+    input_populations::Array{InputPopulation, 1}
+    processing_populations::Array{ProcessingPopulation, 1}
     populations::Array{NeuronPopulation, 1}
     weights::Dict{Pair{Int, Int}, Array{T, 2}} # Input is along 2nd dimension
     connectivity_matrix::BitArray{2}
@@ -10,15 +10,17 @@ struct Cortex{T<:AbstractFloat}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         # Make the populations in the order given
-        input_populations = InputNeuronPopulation[]
+        input_populations = InputPopulation[]
         for i in eachindex(input_neuron_types)
-            push!(input_populations, InputNeuronPopulation(i, input_neuron_types[i]..., spiketype))
+            ntype, sz = input_neuron_types[i]
+            push!(input_populations, ntype(i, sz, spiketype))
         end
 
-        processing_populations = ProcessingNeuronPopulation[]
+        processing_populations = ProcessingPopulation[]
         num_inp_pop = length(input_populations)
         for i in eachindex(neuron_types)
-            push!(processing_populations, ProcessingNeuronPopulation(i + num_inp_pop, neuron_types[i]...))
+            ntype, sz, weight_update, lr = neuron_types[i]
+            push!(processing_populations, ntype(i + num_inp_pop, sz, weight_update, lr))
         end
         populations = vcat(input_populations, processing_populations)
         num_pop = length(populations)
@@ -63,14 +65,14 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
         # Take the head spike from out_spikes queue of each population with smallest time property
         pop_spike = pop_next_spike!(cortex.populations)
         process_spike!(cortex, pop_spike...)
-        !isnothing(extractors) ? monitor!(cortex, pop_spike, extractors, record) : nothing
+        !isnothing(extractors) ? monitor!(record, cortex, pop_spike, extractors) : nothing
         push!(spikes, pop_spike)
     end
     !isnothing(record) ? record = Dict(k=>collapse(v) for (k, v) in record) : nothing
     spikes, record
 end
 
-function process_spike!(cortex::Cortex, src_pop_id::UInt, spike::Spike)
+function process_spike!(cortex::Cortex, src_pop_id::Int, spike::Spike)
     dst_pop_ids = dependent_populations(cortex, src_pop_id)
     for i in dst_pop_ids
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
@@ -98,8 +100,8 @@ function get_next_spike(pops::Array{NeuronPopulation, 1})
     if isempty(non_empty_pops)
         return nothing, nothing, nothing
     end
-    earliest_spikes = map(x->x.out_spikes[end], non_empty_pops)
-    _, ind = findmin([timing(s) for s in earliest_spikes])
+    earliest_spikes = [pop.out_spikes[end] for pop in non_empty_pops]
+    _, ind = findmin(timing.(earliest_spikes))
     non_empty_pops, earliest_spikes[ind], ind
 end
 
@@ -109,8 +111,8 @@ num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
 reset!(cortex::Cortex) = reset!.(cortex.processing_populations)
 
-dependent_populations(c::Cortex, i::UInt) = UInt.(findall(c.connectivity_matrix[:, i]))
+dependent_populations(c::Cortex, i::Int) = findall(c.connectivity_matrix[:, i])
 
-population_dependency(c::Cortex, i::UInt) = UInt.(findall(c.connectivity_matrix[i, :]))
+population_dependency(c::Cortex, i::Int) = findall(c.connectivity_matrix[i, :])
 
 timing(s::Spike) = s.time

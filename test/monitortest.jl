@@ -1,7 +1,7 @@
 function getu(c, ps)
     out = Dict()
     for pop in c.processing_populations
-        out[pop.id] = [n.u for n in pop.neurons]
+        out[pop.id] = pop.u[:]
     end
     out
 end
@@ -9,8 +9,8 @@ end
 extractors = Dict("weights"=>(c, ps)->c.weights,
                   "u"=>getu)
 
-input_neuron_types = [(PoissonInpNeuron, 5)]
-neuron_types = [(LIFNeuron, 5, stdp, 3.)]
+input_neuron_types = [(PoissonInpPopulation, 5)]
+neuron_types = [(LIFPopulation, 5, stdp, 3.)]
 conn = Dict(1=>2)
 spiketype = LIFSpike
 wt_init() = 5 * rand()
@@ -31,7 +31,7 @@ u = monitor["u"][2]
 indices = findall(s->first(s) == 1, spikes)
 inp_spikes = last.(spikes[indices])
 plot_u = u[:, indices]
-f = cortex.processing_populations[1].neurons[1].u_func
+f = cortex.processing_populations[1].u_func
 x, y = gridify(plot_u[1,:], f, inp_spikes, 1., 1000.)
 @test isfloatarray(x, 1)
 @test isfloatarray(y, 1)
