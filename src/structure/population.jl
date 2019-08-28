@@ -8,7 +8,9 @@ Base.iterate(p::NeuronPopulation, n::Nothing) = nothing
 abstract type ProcessingPopulation <: NeuronPopulation end
 
 function update_weights!(pop::ProcessingPopulation, weights::SubArray{T, 1}, spike::Spike, next_spike::Union{Spike, Nothing}) where T<:AbstractFloat
-    weights .= pop.weight_update.(pop, weights, pop.last_out, spike, next_spike)
+    for i in 1:pop.length
+        weights[i] = pop.weight_update(pop, weights[i], pop.last_out[i], spike, next_spike)
+    end
 end
 
 abstract type InputPopulation <: NeuronPopulation end

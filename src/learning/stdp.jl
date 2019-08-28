@@ -13,7 +13,5 @@ function stdp(pop::NeuronPopulation, w::T, last_out::Union{Spike, Nothing}, prev
     w
 end
 
-function exponent(pre, post, tau)
-    exp((pre - post) / tau)
-end
+exponent(pre::T, post::T, tau::T) where T<:AbstractFloat = exp((pre - post) / tau)
 

@@ -58,18 +58,21 @@ function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T
     end
     # Reset all ProcessingNeuronPopulation in cortex to ensure they're in correct state before processing
     reset!(cortex)
-    !isnothing(extractors) ? record = Dict(k=>Array{Dict, 1}() for (k, _) in extractors) : record = nothing
-    spikes = Tuple{UInt, Spike}[]
+    spikes, record = makerecord(extractors)
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
     while any(has_out_spikes.(cortex.populations))
         # Take the head spike from out_spikes queue of each population with smallest time property
-        pop_spike = pop_next_spike!(cortex.populations)
-        process_spike!(cortex, pop_spike...)
-        !isnothing(extractors) ? monitor!(record, cortex, pop_spike, extractors) : nothing
-        push!(spikes, pop_spike)
+        pop_spike = process_next_spike(cortex)
+        monitorrecord!(spikes, record, extractors, cortex, pop_spike)
     end
-    !isnothing(record) ? record = Dict(k=>collapse(v) for (k, v) in record) : nothing
+    record = collapserecord(record)
     spikes, record
+end
+
+function process_next_spike(cortex)
+    pop_spike = pop_next_spike!(cortex.populations)
+    process_spike!(cortex, pop_spike...)
+    pop_spike
 end
 
 function process_spike!(cortex::Cortex, src_pop_id::Int, spike::Spike)
@@ -77,7 +80,7 @@ function process_spike!(cortex::Cortex, src_pop_id::Int, spike::Spike)
     for i in dst_pop_ids
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
         dst_pop = cortex.populations[i]
-        weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
+        @views weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
         process_spike!(dst_pop, weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spike! to generate output spikes for each of those populations
         all_src_pop_ind = population_dependency(cortex, i)
@@ -85,7 +88,6 @@ function process_spike!(cortex::Cortex, src_pop_id::Int, spike::Spike)
         output_spike!(dst_pop, spike, next_spike)
         # TODO Find next spike among all the output spikes and then filter the new spikes based on their dependencies.
         #  Call update_weights! to update the weights for those populations that just processed the spike
-        @views weights = cortex.weights[src_pop_id=>i][:, spike.neuron_index]
         update_weights!(dst_pop, weights, spike, next_spike)
     end
 end
@@ -116,3 +118,26 @@ dependent_populations(c::Cortex, i::Int) = findall(c.connectivity_matrix[:, i])
 population_dependency(c::Cortex, i::Int) = findall(c.connectivity_matrix[i, :])
 
 timing(s::Spike) = s.time
+
+function makerecord(extractors::Union{Dict, Nothing})
+    if !isnothing(extractors)
+        record = Dict(k=>Array{Dict, 1}() for (k, _) in extractors)
+        spikes = Tuple{Int, Spike}[]
+        return spikes, record
+    end
+    nothing, nothing
+end
+
+function monitorrecord!(spikes, record, extractors, cortex, pop_spike)
+    if !isnothing(record)
+        monitor!(record, cortex, pop_spike, extractors)
+        push!(spikes, pop_spike)
+    end
+end
+
+function collapserecord(record)
+    if !isnothing(record)
+        record = Dict(k=>collapse(v) for (k, v) in record)
+        return record
+    end
+end

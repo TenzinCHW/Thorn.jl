@@ -1,4 +1,4 @@
-function rasterspikes(spikes::Array{Tuple{UInt, T}, 1}, cortex::Cortex) where T<:Spike
+function rasterspikes(spikes::Array{Tuple{Int, T}, 1}, cortex::Cortex) where T<:Spike
     currentht = 0.
     dy = 1
     x = []

@@ -12,7 +12,7 @@ maxval = max(data...)
 generate_input_spikes!(inp_pop, data, maxval)
 @test length(inp_pop.out_spikes) > 0
 for s in inp_pop.out_spikes
-    process_spike!(proc_pop, weights[:, Int(s.neuron_index)], s)
+    @views process_spike!(proc_pop, weights[:, Int(s.neuron_index)], s)
 end
 # Processing population test
 voltages = proc_pop.u
