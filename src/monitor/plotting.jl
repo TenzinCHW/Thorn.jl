@@ -27,9 +27,8 @@ function gridify(val::Array{T, 1}, diffeq, spikes::Array{S, 1}, dt::T, time_end:
         init_val = v
         start = s.time
     end
-    # need the initial value when the last spike occurred
-    lastval = diffeq(init_val, spikes[end].time - spikes[end-1].time)
-    interpolate(x, y, diffeq, lastval, start, time_end + dt)
+    # Compute for the interval between time_end and the last spike timing
+    interpolate(x, y, diffeq, init_val, start, time_end + dt)
     x, y
 end
 
