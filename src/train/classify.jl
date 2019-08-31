@@ -1,7 +1,7 @@
-function test(cortex::Cortex, trainloader::Dataloader, testloader::Dataloader, act, dec, popid::Int)
+function classify(cortex::Cortex, popid::Int, trainloader::Dataloader, testloader::Dataloader, act, dec)
     activity = probeactivity(act, cortex, trainloader, popid)
     assign = ClassAssignment(funcs..., activity, popid)
-    result = classifyall(cortex, assign, testloader)
+    result = classify(cortex, assign, testloader)
     # Build confusion matrix and compute accuracy
     classes = trainloader.dataset.classes
     confusion = zeros(assign.numclasses, assign.numclasses)
@@ -15,7 +15,7 @@ function test(cortex::Cortex, trainloader::Dataloader, testloader::Dataloader, a
 end
 
 # loader must contain test data
-function classifyall(cortex::Cortex, assign::ClassAssignment, loader::Dataloader)
+function classify(cortex::Cortex, assign::ClassAssignment, loader::Dataloader)
     result = Tuple{String, String}[]
     for (cls, data) in loader
         # pass into a cortex
@@ -55,7 +55,7 @@ end
 # I assume the assign function for clustering is very similar to this API
 # loader must contain train data
 function probeactivity(activityfunc::Function, cortex::Cortex, loader::Dataloader, popid::Int)
-    numneurons = length(cortex.populations[popid].neurons)
+    numneurons = cortex.populations[popid].length
     # For each class, we keep track of how "active" each neuron is
     # (can be number of spikes, number of spikes within a window, time of first spike)
     activity = Dict(cls=>zeros(numneurons) for cls in loader.dataset.classes)
@@ -74,8 +74,6 @@ function probeactivity(activityfunc::Function, cortex::Cortex, loader::Dataloade
             # In this case it only affects the neuron that had the most spikes
             # activityfunc must modify the activity[cls] array given to it
             activityfunc(activity[cls], spikes)
-            #mostspike = neuronmostspikes(spikes, numneurons)
-            #activity[cls][mostspike] += 1
         end
     end
     activity
@@ -93,7 +91,7 @@ countspikes(spikes, numneurons) = [count(s->s.neuron_index == i, spikes) for i i
 function decidemostspikes(activity::Array{Any, 1}, probedactivity::Dict{String, Array{Any, 1}})
 # Each neuron is mapped to the class that it was most active for using a decision function
     ks, vs = keys(probedactivity), values(probedactivity)
-    #neuronactivities is a matrix of n x cls
+    # neuronactivities is a matrix of n x cls
     neuronactivities = hcat(vs...)
     assignmentvec = ks[argmax(neuronactivities[i, :]) for i in 1:length(activity)]
     assignmentvec[argmax(activity)]
