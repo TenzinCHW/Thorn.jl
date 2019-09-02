@@ -11,7 +11,7 @@ extractors = Dict("weights"=>(c, ps)->c.weights,
 
 input_neuron_types = [(PoissonInpPopulation, 5)]
 neuron_types = [(LIFPopulation, 5, stdp, 3.)]
-conn = Dict(1=>2)
+conn = [1=>2]
 spiketype = LIFSpike
 wt_init() = 5 * rand()
 wt_init(m, n) = 30 * rand(m, n)

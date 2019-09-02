@@ -6,7 +6,7 @@ struct Cortex{T<:AbstractFloat}
     connectivity_matrix::BitArray{2}
 
     # Constructor with connectivity_matrix and weight initialisation function
-    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Array{Tuple{UnionAll, Int, T, S}, 1}, connectivity::Dict{Int, Int}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Vector{Tuple{UnionAll, Int, T, S}}, connectivity::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         # Make the populations in the order given
@@ -50,7 +50,9 @@ struct Cortex{T<:AbstractFloat}
 end
 
 # Assumes all inputs are normalized to 0. to 1.
-function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1}, maxval::T=1., extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
+function process_sample!(cortex::Cortex, input::Array{Array{T, 1}, 1},
+                         maxval::T=1.,
+                         extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
     # Generate spike data from input; each array is for each corresponding input pop
     # If raw sensor data is 2D, flatten it
     for (pop, data) in zip(cortex.input_populations, input)
@@ -86,7 +88,6 @@ function process_spike!(cortex::Cortex, src_pop_id::Int, spike::Spike)
         all_src_pop_ind = population_dependency(cortex, i)
         _, next_spike, _ = get_next_spike(cortex.populations[all_src_pop_ind])
         output_spike!(dst_pop, spike, next_spike)
-        # TODO Find next spike among all the output spikes and then filter the new spikes based on their dependencies.
         #  Call update_weights! to update the weights for those populations that just processed the spike
         update_weights!(dst_pop, weights, spike, next_spike)
     end
