@@ -33,6 +33,7 @@ inp_spikes = last.(spikes[indices])
 plot_u = u[:, indices]
 f = cortex.processing_populations[1].u_func
 x, y = gridify(plot_u[1,:], f, inp_spikes, 1., 1000.)
+@test length(x) == length(y)
 @test isfloatarray(x, 1)
 @test isfloatarray(y, 1)
 
