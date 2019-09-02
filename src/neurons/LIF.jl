@@ -6,7 +6,7 @@ def_α= .8
 def_τ = 16.8
 def_thresh = 2.
 
-struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
+mutable struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     id::Int
     u::Array{T, 1}
     init_u::T
@@ -41,6 +41,7 @@ end
 function process_spike!(pop::LIFPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     dt = isnothing(pop.last_spike) ? spike.time : spike.time - pop.last_spike.time
     pop.u .= weights + pop.u_func.(pop.u, dt)
+    pop.last_spike = spike
 end
 
 function LIF(rest_u, τ)
