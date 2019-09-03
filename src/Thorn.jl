@@ -1,5 +1,6 @@
 module Thorn
     include("spike.jl")
+    include("structure/stack.jl")
     include("structure/population.jl")
     include("structure/cortex.jl")
     include("neurons/LIF.jl")
@@ -15,10 +16,11 @@ module Thorn
     include("data/data.jl")
 
     export Spike, LIFSpike,
+    Stack, insertsorted!,
     NeuronPopulation, InputPopulation, ProcessingPopulation,
     process_spike!, generate_input_spikes!, insertsorted,
     LIFPopulation, PoissonInpPopulation, RateInpPopulation,
-    state_update!, output_spike!, reset!, compute_rate, generate_input,
+    update_state!, output_spike!, reset!, compute_rate, generate_input,
     stdp,
     Cortex,
     process_sample!, population_dependency, dependent_populations,

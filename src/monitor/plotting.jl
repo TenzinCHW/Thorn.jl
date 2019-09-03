@@ -1,12 +1,12 @@
-function rasterspikes(spikes::Array{Tuple{Int, T}, 1}, cortex::Cortex) where T<:Spike
+function rasterspikes(spikes::Vector{Spike}, cortex::Cortex)
     currentht = 0.
     dy = 1
-    x = []
-    y = []
+    x = Vector{typeof(currentht)}[]
+    y = Vector{typeof(currentht)}[]
     for (i, num) in enumerate(pop.length for pop in cortex.populations)
-        sp = filter(x->first(x) == i, spikes)
-        xs = [last(s).time for s in sp]
-        ys = [currentht + last(s).neuron_index * dy for s in sp]
+        sp = filter(x->x.pop_id == i, spikes)
+        xs = [s.time for s in sp]
+        ys = [currentht + s.neuron_id * dy for s in sp]
         push!(x, xs)
         push!(y, ys)
         currentht += dy * (num + 1)
@@ -14,7 +14,7 @@ function rasterspikes(spikes::Array{Tuple{Int, T}, 1}, cortex::Cortex) where T<:
     x, y
 end
 
-function gridify(val::Array{T, 1}, diffeq, spikes::Array{S, 1}, dt::T, time_end::T;
+function gridify(val::Vector{T}, diffeq, spikes::Vector{S}, dt::T, time_end::T;
                  init_val::T=0.) where {T<:AbstractFloat, S<:Spike, A}
     # val is an array of initial values of the diffeq corresponding to the times of the spikes
     !isequal(length.([val, spikes])...) ? error("val should be same length as spikes") : nothing

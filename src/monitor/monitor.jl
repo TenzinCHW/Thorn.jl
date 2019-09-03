@@ -1,6 +1,6 @@
-function monitor!(record::Dict{String, Array{Dict, 1}}, cortex::Cortex, pop_spike::Tuple{Int, S}, extractors::Dict) where S<:Spike
+function monitor!(record::Dict{String, Array{Dict, 1}}, cortex::Cortex, spike::Spike, extractors::Dict)
     for (name, extractor) in extractors
-        push!(record[name], deepcopy(extractor(cortex, pop_spike)))
+        push!(record[name], deepcopy(extractor(cortex, spike)))
     end
 end
 

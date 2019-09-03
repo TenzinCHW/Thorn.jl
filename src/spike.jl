@@ -8,7 +8,8 @@ Base.iterate(s::Spike) = s, nothing
 Base.iterate(s::Spike, n::Nothing) = nothing
 
 struct LIFSpike{T<:AbstractFloat} <: Spike
-    neuron_index::Int # Localindex of neuron that fired this spike
+    pop_id::Int # Population index containing neuron that fired this spike
+    neuron_id::Int # Localindex of neuron that fired this spike
     time::T # Global time in ms since start of simulation
 end
 

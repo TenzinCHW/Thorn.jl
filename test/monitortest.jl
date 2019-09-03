@@ -13,10 +13,11 @@ input_neuron_types = [(PoissonInpPopulation, 5)]
 neuron_types = [(LIFPopulation, 5, stdp, 3.)]
 conn = [1=>2]
 spiketype = LIFSpike
+numsample = 4
 wt_init() = 5 * rand()
 wt_init(m, n) = 30 * rand(m, n)
 cortex = Cortex(input_neuron_types, neuron_types, conn, wt_init, spiketype)
-data = [rand(sz)]
+data = [rand(sz, numsample)]
 spikes, monitor = process_sample!(cortex, data, 1., extractors)
 
 import InteractiveUtils
