@@ -14,6 +14,7 @@ module Thorn
     include("monitor/plotting.jl")
     include("data/persistence.jl")
     include("data/data.jl")
+    include("train/classify.jl")
 
     export Spike, LIFSpike,
     Stack, insertsorted!,
