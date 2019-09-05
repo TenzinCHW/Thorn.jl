@@ -21,7 +21,7 @@ module Thorn
     NeuronPopulation, InputPopulation, ProcessingPopulation,
     process_spike!, generate_input_spikes!, insertsorted,
     LIFPopulation, PoissonInpPopulation, RateInpPopulation,
-    update_state!, output_spike!, reset!, compute_rate, generate_input,
+    update_state!, output_spike, reset!, compute_rate, generate_input,
     stdp,
     Cortex,
     process_sample!, population_dependency, dependent_populations,

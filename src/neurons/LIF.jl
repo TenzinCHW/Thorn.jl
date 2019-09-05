@@ -56,7 +56,7 @@ function LIF(rest_u, τ)
     end
 end
 
-function output_spike!(pop::LIFPopulation, spike::Spike)
+function output_spike(pop::LIFPopulation, spike::Spike)
     fired = pop.u .>= pop.thresh
     inds = findall(fired)
     [LIFSpike(pop.id, i, spike.time + pop.arp) for i in inds]
