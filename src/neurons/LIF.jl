@@ -2,7 +2,7 @@
 def_u = 0.
 def_rest_u = 0.
 def_spike_u = -5.
-def_α= .8
+def_α = .8
 def_τ = 16.8
 def_thresh = 2.
 def_arp = 20.
@@ -21,7 +21,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     u_func::Function
     weight_update::Function
     η::T # Learning rate
-    out_spikes::Stack{LIFSpike}
+    out_spikes::Queue{LIFSpike}
     last_spike::Array{Union{Spike, Nothing}, 0}
 
     function LIFPopulation(id, sz, weight_update, η; init_u=def_u,
@@ -38,7 +38,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         last_spike[] = nothing
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
                        arp, thresh, u_func, weight_update, η,
-                       Stack(LIFSpike), last_spike
+                       Queue(LIFSpike), last_spike
                        )
     end
 end
@@ -62,14 +62,21 @@ function output_spike!(pop::LIFPopulation, spike::Spike)
     [LIFSpike(pop.id, i, spike.time + pop.arp) for i in inds]
 end
 
-function update_spike!(pop::LIFPopulation, spikes::Vector{Spike})
-    for s in spikes
-        pop.u[s.neuron_id] = pop.u_rest
+function update_spike!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
+    if !isempty(spikes)
+        pop.u .= pop.spike_u
+        update_spike!.(pop, spikes)
     end
+end
+
+function update_spike!(pop::LIFPopulation, s::Spike)
+    pop.thresh[s.neuron_id] += 0.01 * exp(0.001*length(pop.out_spikes.items))
+    pop.u[s.neuron_id] = pop.rest_u
 end
 
 function reset!(pop::LIFPopulation)
     pop.last_spike[] = nothing
     pop.u .= pop.init_u
+    clear!(pop.out_spikes)
 end
 

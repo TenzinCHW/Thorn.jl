@@ -1,21 +1,22 @@
 # Rates are in Hz
 maxrate = 20.
-minrate = 1.
+minrate = 0.
 period = 1000. # Milliseconds
 
-struct PoissonInpPopulation{T<:AbstractFloat} <: InputPopulation
+struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     id::Int
     maxrate::T
     minrate::T
     period::T
     spiketype::UnionAll
-    out_spikes::Array{Spike, 1}
+    out_spikes::Queue{S}
     length::Int
 
     function PoissonInpPopulation(id, sz, spiketype, maxrate=maxrate, minrate=minrate, period=period)
         (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
 
-        new{typeof(maxrate)}(id, maxrate, minrate, sampleperiod, spiketype, spiketype[], sz)
+        out_spikes = Queue(spiketype)
+        new{typeof(maxrate), spiketype}(id, maxrate, minrate, sampleperiod, spiketype, out_spikes, sz)
     end
 end
 
@@ -33,6 +34,8 @@ function generate_input(pop::PoissonInpPopulation{T}, neuron_id::Int, sensor_inp
     end
     spikes
 end
+
+reset!(pop::PoissonInpPopulation) = clear!(pop.out_spikes)
 
 mutable struct ExpAccumulate{T<:AbstractFloat}
     t::T
