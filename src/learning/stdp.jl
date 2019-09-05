@@ -3,7 +3,7 @@
 # If I do just last input and last output, I just have to apply a weight update before processing each input spike and after each output spike
 function stdp(pop::NeuronPopulation, w::AbstractFloat, pre::S, post::S) where S<:Spike
     α, η, τ = pop.α, pop.η, pop.τ
-    if prev_spike.time < postspike.time
+    if pre.time < post.time
         update = pop.α * exponent(pre.time, post.time, pop.τ)
     else
         update = exponent(-pre.time, -post.time, pop.τ)
