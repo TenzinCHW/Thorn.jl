@@ -15,11 +15,11 @@ function update_weights!(pop::ProcessingPopulation, weights::SubArray{T, 1}, spi
     end
 end
 
-function update_weights!(srcpop::NeuronPopulation, dstpop::ProcessingPopulation, weights::Array{AbstractFloat, 2}, newspike::Spike)
+function update_weights!(srcpop::NeuronPopulation, dstpop::ProcessingPopulation, weights::Array{T, 2}, newspike::Spike) where T<:AbstractFloat
     #TODO update weights for each spike in populations that dst depends on for each new spike produced by dst
     for s in srcpop.out_spikes.items
         if s.time < newspike.time
-            weights[newspike.neuron_id, s.neuron_id] = pop.weight_update(dstpop, weights[newspike.neuron_id, s.neuron_id], s, newspike)
+            weights[newspike.neuron_id, s.neuron_id] = dstpop.weight_update(dstpop, weights[newspike.neuron_id, s.neuron_id], s, newspike)
         end
     end
 end
@@ -38,6 +38,6 @@ function generate_input_spikes!(input_pop::InputPopulation, data::Array{T, 2}, m
         push!(input_pop.out_spikes, s)
     end
     # Must sort the out_spikes of each InputNeuronPopulation after generating the spikes in reverse order based on time property of each spike
-    sort!(input_pop.out_spikes, by=x->x.time, rev=true);
+    sort!(input_pop.out_spikes.items, by=x->x.time, rev=true);
 end
 

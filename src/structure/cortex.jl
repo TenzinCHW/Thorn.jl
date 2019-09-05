@@ -53,15 +53,16 @@ end
 function process_sample!(cortex::Cortex, input::Vector{Array{T, 2}},
                          maxval::T=1.,
                          extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
+    # Reset all populations in cortex to ensure they're in correct state before processing
+    reset!(cortex)
     # Generate spike data from input; each array is for each corresponding input pop
     # If raw sensor data is 2D, flatten it
     for (pop, data) in zip(cortex.input_populations, input)
         generate_input_spikes!(pop, data, maxval)
     end
-    # Reset all ProcessingNeuronPopulation in cortex to ensure they're in correct state before processing
-    reset!(cortex)
     spikes, record = makerecord(extractors)
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
+    total = 0
     while any(has_out_spikes.(cortex.populations))
         # Take the head spike from out_spikes queue of each population with smallest time property
         spike = process_next_spike(cortex)
@@ -86,8 +87,6 @@ function process_spike!(cortex::Cortex, spike::Spike)
         @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
         update_state!(dst_pop, weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spike! to generate output spikes for each of those populations
-        #all_src_pop_ind = population_dependency(cortex, i)
-        #_, next_spike, _ = get_next_spike(cortex.populations[all_src_pop_ind])
         S_dst[i] = output_spike!(dst_pop, spike)
     end
     #TODO find earliest spike of all populations (including new ones) and sort
@@ -112,7 +111,7 @@ function process_spike!(cortex::Cortex, spike::Spike)
     for s in S_earliest
         for i in dst_pop_ids
             if spike.pop_id in population_dependency(cortex, i)
-                filter!(sp->sp.time<s.time, S_dst[i])
+                filter!(sp->sp.time<=s.time, S_dst[i])
             end
         end
     end
@@ -126,10 +125,10 @@ function process_spike!(cortex::Cortex, spike::Spike)
         for ns in S_dst[i]
             dependency = population_dependency(cortex, i)
             for pop in cortex.populations[dependency]
-                update_weights!(pop, dst_pop, cortex.weights(pop.id=>ns.pop_id), ns)
+                update_weights!(pop, dst_pop, cortex.weights[pop.id=>ns.pop_id], ns)
             end
             #TODO insert new spikes into their respective pops' out_spikes fields
-            insertsorted!(dst_pop.out_spikes, ns)
+            insertsorted!(dst_pop.out_spikes, ns, (x,y)->x.time<y.time)
         end
     end
 end
@@ -144,7 +143,7 @@ function get_next_spike(pops::Vector{NeuronPopulation})
     if isempty(non_empty_pops)
         return nothing
     end
-    earliest_spikes = [pop.out_spikes[end] for pop in non_empty_pops]
+    earliest_spikes = [get_next_spike(pop) for pop in non_empty_pops]
     _, ind = findmin(timing.(earliest_spikes))
     earliest_spikes[ind]
 end
@@ -156,7 +155,7 @@ function get_next_spike(pop::NeuronPopulation, newspikes::Vector{Spike})
 end
 
 function get_next_spike(pop::NeuronPopulation)
-    pop.out_spikes[end]
+    first(pop.out_spikes)
 end
 
 function get_next_spike(spikes::Vector{Spike})
@@ -168,7 +167,7 @@ has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
 
 num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
-reset!(cortex::Cortex) = reset!.(cortex.processing_populations)
+reset!(cortex::Cortex) = reset!.(cortex.populations)
 
 dependent_populations(c::Cortex, i::Int) = findall(c.connectivity_matrix[:, i])
 
@@ -198,3 +197,4 @@ function collapserecord(record)
         return record
     end
 end
+
