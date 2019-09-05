@@ -87,7 +87,7 @@ function process_spike!(cortex::Cortex, spike::Spike)
         @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
         update_state!(dst_pop, weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spike! to generate output spikes for each of those populations
-        S_dst[i] = output_spike!(dst_pop, spike)
+        S_dst[i] = output_spike(dst_pop, spike)
     end
     #TODO find earliest spike of all populations (including new ones) and sort
     S_earliest = Spike[]
