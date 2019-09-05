@@ -7,7 +7,7 @@ mutable struct Dataset
     data::Dict{String, Array{String, 1}}
     activeset::Array{Tuple{String, String}, 1}
 
-    function Dataset(basedir::String, traintestdir::String, activecls::Array{String, 1}=["all"])
+    function Dataset(basedir::String, traintestdir::String; activecls::Array{String, 1}=["all"])
         src = Datasource(basedir)
         data, activeset, classes = getdsdata(src, traintestdir, activecls)
         new(src, classes, traintestdir, data, activeset)
@@ -21,7 +21,7 @@ function getdsdata(src::Datasource, traintestdir::String, activecls::Array{Strin
     end
     all(in.(activecls, [classes])) || error("Invalid active class")
     data = Dict(cls => datasrcitems(src, joinpath(traintestdir, cls))
-                    for cls in classes)
+                    for cls in activecls)
     activeset = sourcenames(data, activecls)
     return data, activeset, activecls
 end
@@ -39,8 +39,8 @@ function resizeset!(dataset::Dataset, percentage::Int64)
     frac = 100 / percentage
     len = Int.(ceil.(length.(values(dataset.data))./frac))
     data = Dict{String, Array{String, 1}}()
-    for (i, (k, v)) in enumerate(dataset.data)
-        data[k] = v[1:i]
+    for (n, (k, v)) in zip(len, dataset.data)
+        data[k] = v[1:n]
     end
     dataset.activeset = sourcenames(data, dataset.classes)
 end
