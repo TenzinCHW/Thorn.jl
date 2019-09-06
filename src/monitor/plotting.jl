@@ -17,6 +17,7 @@ end
 function gridify(val::Vector{T}, diffeq, spikes::Vector{S}, dt::T, time_end::T;
                  init_val::T=0.) where {T<:AbstractFloat, S<:Spike, A}
     # val is an array of initial values of the diffeq corresponding to the times of the spikes
+    # spikes is an ordered array of spikes by time
     !isequal(length.([val, spikes])...) ? error("val should be same length as spikes") : nothing
     isfloat.(val) # Should not throw error
     x = makegrid(dt, time_end)
