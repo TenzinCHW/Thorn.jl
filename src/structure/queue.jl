@@ -41,21 +41,13 @@ function Base.pop!(q::Queue)
     q.items[q.head[] - 1]
 end
 
-#Base.Sort.searchsortedlast(s::Stack{T}, item::T; lt) where T = searchsortedlast(s.items, item, lt=lt)
-
 function insertsorted!(q::Queue{T}, item::T, lt) where T
-#    if isempty(out_spikes) || s.time <= out_spikes[end].time
-#        push!(out_spikes, s)
-#    else
         index = searchsortedfirst(q.items, item, lt=lt)
         insert!(q, index, item)
-#    end
 end
 
 function clear!(q::Queue)
-    for i in eachindex(q.items)
-        pop!(q.items)
-    end
+    empty!(q.items)
     q.head[] = 1
 end
 
