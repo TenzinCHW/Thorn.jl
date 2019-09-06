@@ -56,15 +56,17 @@ function LIF(rest_u, τ)
     end
 end
 
-function output_spike(pop::LIFPopulation, spike::Spike)
+function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     fired = pop.u .>= pop.thresh
     inds = findall(fired)
-    [LIFSpike(pop.id, i, spike.time + pop.arp) for i in inds]
+    for i in inds
+        push!(S_dst, LIFSpike(pop.id, i, spike.time + pop.arp))
+    end
 end
 
 function update_spike!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
     if !isempty(spikes)
-        pop.u .= pop.spike_u
+        pop.u .= pop.spike_u # WTA circuit
         update_spike!.(pop, spikes)
     end
 end

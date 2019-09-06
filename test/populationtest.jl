@@ -20,6 +20,7 @@ voltages = proc_pop.u
 @test all(voltages .!= 0)
 @test length(proc_pop.out_spikes) == 0
 num_spike = sum(voltages .> proc_pop.thresh)
-outspikes = output_spike(proc_pop, inp_pop.out_spikes[1])
+outspikes = Spike[]
+output_spike!(outspikes, proc_pop, inp_pop.out_spikes[1])
 @test length(outspikes) == num_spike
 
