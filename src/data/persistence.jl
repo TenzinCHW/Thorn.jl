@@ -22,12 +22,12 @@ function datasrcreadbits(datasrc::Datasource, path::String)::Array{UInt8, 2}
     datasrcread(datasrc, path)
 end
 
-function datasrcwrite!(datasrc::Datasource, path::String, data::AbstractArray)
+function datasrcwrite!(datasrc::Datasource, path::String, data)
     datasrc.file[path] = data
 end
 
 function datasrcwritebits!(datasrc::Datasource, path::String, data::Array{UInt8, Any})
-    datasrcwrite(datasrc, BitArray(data))
+    datasrcwrite!(datasrc, BitArray(data))
 end
 
 function datasrcitems(src::Datasource, pth::String)
