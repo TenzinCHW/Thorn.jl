@@ -36,9 +36,10 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         u_func = LIF(rest_u, τ)
         last_spike = Array{Union{Spike, Nothing}}(undef)
         last_spike[] = nothing
+        q = Queue(typeof(LIFSpike(1, 1, arp)))
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
                        arp, thresh, u_func, weight_update, η,
-                       Queue(LIFSpike), last_spike
+                       q, last_spike
                        )
     end
 end
