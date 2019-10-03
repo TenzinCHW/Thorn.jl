@@ -21,7 +21,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     u_func::Function
     weight_update::Function
     η::T # Learning rate
-    out_spikes::Queue{LIFSpike}
+    out_spikes::Queue{LIFSpike{T}}
     last_spike::Array{Union{Spike, Nothing}, 0}
 
     function LIFPopulation(id, sz, weight_update, η; init_u=def_u,
