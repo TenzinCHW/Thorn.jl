@@ -1,6 +1,7 @@
 sz = 5
 numsample = 4
-input_neuron_types = [(PoissonInpPopulation, sz)]
+inp_kwargs = Dict(:sampleperiod=>50) # 50 ms sample_period
+input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
 neuron_types = [(LIFPopulation, sz, stdp, 0.01)]
 conn = [1=>2]
 spiketype = LIFSpike

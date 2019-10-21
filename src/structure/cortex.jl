@@ -8,22 +8,13 @@ struct Cortex{T<:AbstractFloat}
     S_dst::Dict{Int, Vector{Spike}} # temp dict for holding vectors of spike proposals for each pop after input spike enters pop
 
     # Constructor with connectivity_matrix and weight initialisation function
-    function Cortex(input_neuron_types::Array{Tuple{UnionAll, Int}, 1}, neuron_types::Vector{Tuple{UnionAll, Int, T, S}}, connectivity::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+    function Cortex(input_neuron_types::Vector, neuron_types::Vector, connectivity::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
-        # Make the populations in the order given
-        input_populations = InputPopulation[]
-        for i in eachindex(input_neuron_types)
-            ntype, sz = input_neuron_types[i]
-            push!(input_populations, ntype(i, sz, spiketype))
-        end
-
-        processing_populations = ProcessingPopulation[]
+        input_populations = make_inp_pops(input_neuron_types, spiketype)
         num_inp_pop = length(input_populations)
-        for i in eachindex(neuron_types)
-            ntype, sz, weight_update, lr = neuron_types[i]
-            push!(processing_populations, ntype(i + num_inp_pop, sz, weight_update, lr))
-        end
+        processing_populations = make_proc_pops(neuron_types, num_inp_pop)
+
         populations = vcat(input_populations, processing_populations)
         num_pop = length(populations)
 
@@ -51,6 +42,35 @@ struct Cortex{T<:AbstractFloat}
     function Cortex(input_neuron_types, neuron_types, connectivity, spiketype)
         Cortex(input_neuron_types, neuron_types, connectivity, rand, spiketype)
     end
+end
+
+function make_inp_pops(input_neuron_types::Vector, spiketype::UnionAll)
+    # Make the populations in the order given
+    input_populations = InputPopulation[]
+    for i in eachindex(input_neuron_types)
+        if length(input_neuron_types[i]) == 3
+            ntype, sz, kwargs = input_neuron_types[i]
+        else
+            ntype, sz = input_neuron_types[i]
+            kwargs = Dict()
+        end
+        push!(input_populations, ntype(i, sz, spiketype; kwargs...))
+    end
+    input_populations
+end
+
+function make_proc_pops(neuron_types::Vector, num_inp_pop::Int)
+    processing_populations = ProcessingPopulation[]
+    for i in eachindex(neuron_types)
+        if length(neuron_types[i]) == 5
+            ntype, sz, weight_update, lr, kwargs = neuron_types[i]
+        else
+            ntype, sz, weight_update, lr = neuron_types[i]
+            kwargs = Dict()
+        end
+        push!(processing_populations, ntype(i + num_inp_pop, sz, weight_update, lr; kwargs...))
+    end
+    processing_populations
 end
 
 # Assumes all inputs are normalized to 0. to 1.
