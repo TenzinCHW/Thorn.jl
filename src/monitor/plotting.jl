@@ -1,4 +1,4 @@
-function rasterspikes(spikes::Vector{Spike}, cortex::Cortex)
+function rasterspikes(spikes::Vector{S}, cortex::Cortex) where S<:Spike
     currentht = 0.
     dy = 1
     x = Vector{typeof(currentht)}[]
@@ -17,23 +17,24 @@ end
 function gridify(val::Vector{T}, diffeq, spikes::Vector{S}, dt::T, time_end::T;
                  init_val::T=0.) where {T<:AbstractFloat, S<:Spike, A}
     # val is an array of initial values of the diffeq corresponding to the times of the spikes
-    # spikes is an ordered array of spikes by time
-    !isequal(length.([val, spikes])...) ? error("val should be same length as spikes") : nothing
+    # spikes is an array of spikes
+    !isequal(length(val), length(spikes)) ? error("val should be same length as spikes") : nothing
     isfloat.(val) # Should not throw error
+    sort!(spikes, by=s->s.time)
     x = makegrid(dt, time_end)
     y = T[]
     start = 0.
     for (s, v) in zip(spikes, val)
-        interpolate(x, y, diffeq, init_val, start, s.time)
+        interpolate!(x, y, diffeq, init_val, start, s.time)
         init_val = v
         start = s.time
     end
     # Compute for the interval between time_end and the last spike timing
-    interpolate(x, y, diffeq, init_val, start, time_end + dt)
+    interpolate!(x, y, diffeq, init_val, start, time_end + dt)
     x, y
 end
 
-function interpolate(x::Array{T, 1}, y::Array{T, 1}, f::Function, u0::T,
+function interpolate!(x::Array{T, 1}, y::Array{T, 1}, f::Function, u0::T,
                      start::T, time_end::T) where T<:AbstractFloat
     dy = f.(u0, filter(dx->start<=dx<time_end, x) .- start)
     for ddy in dy

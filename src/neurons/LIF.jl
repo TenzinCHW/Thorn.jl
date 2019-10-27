@@ -10,18 +10,18 @@ def_arp = 20.
 struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     id::Int
     length::Int
-    u::Array{T, 1}
+    u::Vector{T}
     init_u::T
     rest_u::T
     spike_u::T
     α::T
     τ::T
     arp::T
-    thresh::Array{T, 1}
+    thresh::Vector{T}
     u_func::Function
     weight_update::Function
     η::T # Learning rate
-    out_spikes::Queue{LIFSpike{T}}
+    out_spikes::Queue{LIFSpike}
     last_spike::Array{Union{Spike, Nothing}, 0}
 
     function LIFPopulation(id, sz, weight_update, η; init_u=def_u,
@@ -36,7 +36,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         u_func = LIF(rest_u, τ)
         last_spike = Array{Union{Spike, Nothing}}(undef)
         last_spike[] = nothing
-        q = Queue(typeof(LIFSpike(1, 1, arp)))
+        q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
                        arp, thresh, u_func, weight_update, η,
                        q, last_spike

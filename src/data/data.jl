@@ -2,19 +2,19 @@ import Random
 
 mutable struct Dataset
     datasrc::Datasource
-    classes::Array{String, 1}
+    classes::Vector{String}
     traintestdir::String
-    data::Dict{String, Array{String, 1}}
-    activeset::Array{Tuple{String, String}, 1}
+    data::Dict{String, Vector{String}}
+    activeset::Vector{Tuple{String, String}}
 
-    function Dataset(basedir::String, traintestdir::String; activecls::Array{String, 1}=["all"])
+    function Dataset(basedir::String, traintestdir::String; activecls::Vector{String}=["all"])
         src = Datasource(basedir)
         data, activeset, classes = getdsdata(src, traintestdir, activecls)
         new(src, classes, traintestdir, data, activeset)
     end
 end
 
-function getdsdata(src::Datasource, traintestdir::String, activecls::Array{String, 1})
+function getdsdata(src::Datasource, traintestdir::String, activecls::Vector{String})
     classes = datasrcitems(src, traintestdir)
     if activecls == ["all"]
         activecls = classes
@@ -38,7 +38,7 @@ function resizeset!(dataset::Dataset, percentage::Int64)
     error("percentage should be from 1 to 100")
     frac = 100 / percentage
     len = Int.(ceil.(length.(values(dataset.data))./frac))
-    data = Dict{String, Array{String, 1}}()
+    data = Dict{String, Vector{String}}()
     for (n, (k, v)) in zip(len, dataset.data)
         data[k] = v[1:n]
     end
@@ -46,8 +46,8 @@ function resizeset!(dataset::Dataset, percentage::Int64)
 end
 
 # Gets class/filename as an array
-function sourcenames(data::Dict{String, Array{String, 1}},
-                                               activecls::Array{String, 1})
+function sourcenames(data::Dict{String, Vector{String}},
+                                               activecls::Vector{String})
     activedata = filter(cls_d->first(cls_d) in activecls, data)
     setnames = []
     for entry in activedata
