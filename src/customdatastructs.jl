@@ -48,6 +48,5 @@ end
 
 function clear!(q::Queue)
     empty!(q.items)
-    q.head[] = 1
 end
 
