@@ -84,19 +84,18 @@ function process_sample!(cortex::Cortex, input::Vector{Array{T, 2}},
     for (pop, data) in zip(cortex.input_populations, input)
         generate_input_spikes!(pop, data, maxval)
     end
-    spikes, record = makerecord(extractors)
+    record = isnothing(extractors) ? nothing : DefaultDict(()->DefaultDict(()->[]))
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
-    total = 0
     while any(has_out_spikes.(cortex.populations))
         # Take the head spike from out_spikes queue of each population with smallest time property
-        spike = process_next_spike(cortex)
-        monitorrecord!(spikes, record, extractors, cortex, spike)
+        spike = process_next_spike!(cortex)
+        monitorrecord!(record, cortex, spike, extractors)
     end
-    record = collapserecord(record)
-    spikes, record
+    record = collapserecord!(record)
+    record
 end
 
-function process_next_spike(cortex)
+function process_next_spike!(cortex)
     spike = pop_next_spike!(cortex.populations)
     process_spike!(cortex, spike)
     spike
@@ -221,29 +220,6 @@ end
 function emptyallarr!(S_dst::Dict{Int, Vector{Spike}})
     for (i, arr) in S_dst
         empty!(arr)
-    end
-end
-
-function makerecord(extractors::Union{Dict, Nothing})
-    if !isnothing(extractors)
-        record = Dict(k=>Array{Dict, 1}() for (k, _) in extractors)
-        spikes = Spike[]
-        return spikes, record
-    end
-    nothing, nothing
-end
-
-function monitorrecord!(spikes, record, extractors, cortex, spike)
-    if !isnothing(record)
-        monitor!(record, cortex, spike, extractors)
-        push!(spikes, spike)
-    end
-end
-
-function collapserecord(record)
-    if !isnothing(record)
-        record = Dict(k=>collapse(v) for (k, v) in record)
-        return record
     end
 end
 

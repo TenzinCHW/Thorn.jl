@@ -8,9 +8,8 @@ conn = [1=>2]
 spiketype = LIFSpike
 cortex = Cortex(input_neuron_types, neuron_types, conn, spiketype)
 data = [rand(sz, numsample)]
-extractors = Dict("nothing"=>(c, ps)->Dict())
-spikes, _ = process_sample!(cortex, data, 1., extractors)
-@test isa(spikes, Vector{Spike})
+process_sample!(cortex, data, 1.)
+@test all(isa.([pop.out_spikes for pop in cortex.populations], Queue{spiketype}))
 @test cortex.input_populations[1].sampleperiod == 50.
 @test cortex.processing_populations[1].τ == 20.4
 

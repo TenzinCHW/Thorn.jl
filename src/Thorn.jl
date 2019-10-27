@@ -1,6 +1,6 @@
 module Thorn
     include("spike.jl")
-    include("structure/queue.jl")
+    include("customdatastructs.jl")
     include("structure/population.jl")
     include("structure/cortex.jl")
     include("neurons/LIF.jl")
@@ -26,7 +26,7 @@ module Thorn
     Cortex,
     process_sample!, population_dependency, dependent_populations,
     Monitor,
-    monitor!, collapse, rasterspikes, gridify,
+    monitor!, collapserecord!, rasterspikes, gridify,
     Datasource,
     datasrcreadbits, datasrcwritebits!, datasrcread, datasrcwrite!, datasrcitems,
     Dataset,
