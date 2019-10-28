@@ -65,7 +65,7 @@ function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     end
 end
 
-function update_spike!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
+function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
     if !isempty(spikes)
         pop.u .= pop.spike_u # WTA circuit
         update_spike!.(pop, spikes)
@@ -80,6 +80,5 @@ end
 function reset!(pop::LIFPopulation)
     pop.last_spike[] = nothing
     pop.u .= pop.init_u
-    clear!(pop.out_spikes)
 end
 

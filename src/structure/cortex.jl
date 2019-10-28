@@ -76,9 +76,10 @@ end
 # Assumes all inputs are normalized to 0. to 1.
 function process_sample!(cortex::Cortex, input::Vector{Array{T, 2}},
                          maxval::T=1.,
-                         extractors::Union{Dict, Nothing}=nothing) where {T<:AbstractFloat}
+                         extractors::Union{Dict, Nothing}=nothing;
+                         train=true, reset_state=true) where {T<:AbstractFloat}
     # Reset all populations in cortex to ensure they're in correct state before processing
-    reset!(cortex)
+    reset!(cortex, reset_state)
     # Generate spike data from input; each array is for each corresponding input pop
     # If raw sensor data is 2D, flatten it
     for (pop, data) in zip(cortex.input_populations, input)
@@ -88,25 +89,25 @@ function process_sample!(cortex::Cortex, input::Vector{Array{T, 2}},
     # While any population in a Cortex has spikes in its out_spikes property, call process_next_spike
     while any(has_out_spikes.(cortex.populations))
         # Take the head spike from out_spikes queue of each population with smallest time property
-        spike = process_next_spike!(cortex)
+        spike = process_next_spike!(cortex, train)
         monitorrecord!(record, cortex, spike, extractors)
     end
     record = collapserecord!(record)
     record
 end
 
-function process_next_spike!(cortex)
+function process_next_spike!(cortex::Cortex, train::Bool)
     spike = pop_next_spike!(cortex.populations)
-    process_spike!(cortex, spike)
+    process_spike!(cortex, spike, train)
     spike
 end
 
-function process_spike!(cortex::Cortex, spike::Spike)
+function process_spike!(cortex::Cortex, spike::Spike, train::Bool)
     dst_pop_ids = dependent_populations(cortex, spike.pop_id)
     propagatespikecollectoutput!(cortex, spike, dst_pop_ids)
     nextspikebypop!(cortex, dst_pop_ids)
     filterafterearliest!(cortex, dst_pop_ids)
-    outputspikesandupdateweights!(cortex, spike, dst_pop_ids)
+    outputspikesandupdateweights!(cortex, spike, dst_pop_ids, train)
     emptyallarr!(cortex.S_dst)
 end
 
@@ -178,7 +179,12 @@ has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
 
 num_out_spikes(pop::NeuronPopulation) = length(pop.out_spikes)
 
-reset!(cortex::Cortex) = reset!.(cortex.populations)
+function reset!(cortex::Cortex, reset_state::Bool)
+    if reset_state
+        reset!.(cortex.populations)
+    end
+    clear!.(pop.out_spikes for pop in cortex.populations)
+end
 
 dependent_populations(c::Cortex, i::Int) = findall(c.connectivity_matrix[:, i])
 
@@ -198,20 +204,22 @@ function filterafterearliest!(cortex::Cortex, dst_pop_ids::Vector{Int})
     empty!(cortex.S_earliest)
 end
 
-function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int})
+function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int}, train::Bool)
     for i in dst_pop_ids
-        #TODO set the spike state for those neurons that spiked successfully
+        # set the spike state for those neurons that spiked successfully
         dst_pop = cortex.populations[i]
-        update_spike!(dst_pop, cortex.S_dst[i])
-        @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
-        #TODO update weights for output spike each dst pop that happens before spike
-        update_weights!(dst_pop, weights, spike)
+        update_spikes!(dst_pop, cortex.S_dst[i])
+        if train
+            @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
+            # update weights for output spike each dst_pop that happens before spike
+            update_weights!(dst_pop, weights, spike)
+        end
         dependency = population_dependency(cortex, i)
         for ns in cortex.S_dst[i]
             for pop in cortex.populations[dependency]
                 update_weights!(pop, dst_pop, cortex.weights[pop.id=>ns.pop_id], ns)
             end
-            #TODO insert new spikes into their respective pops' out_spikes fields
+            # insert new spikes into their respective pops' out_spikes fields
             insertsorted!(dst_pop.out_spikes, ns, (x,y)->x.time<y.time)
         end
     end

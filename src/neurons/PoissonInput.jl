@@ -34,7 +34,7 @@ function generate_input(pop::PoissonInpPopulation{T}, neuron_id::Int, sensor_inp
     spikes
 end
 
-reset!(pop::PoissonInpPopulation) = clear!(pop.out_spikes)
+reset!(p::PoissonInpPopulation) = nothing
 
 mutable struct ExpAccumulate{T<:AbstractFloat}
     t::T

@@ -34,3 +34,5 @@ function generate_input(pop::RateInpPopulation, neuron_id::Int, sensor_inp::Vect
     spikes
 end
 
+reset!(p::RateInpPopulation) = nothing
+
