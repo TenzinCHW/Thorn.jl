@@ -61,7 +61,7 @@ function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     fired = pop.u .>= pop.thresh
     inds = findall(fired)
     for i in inds
-        push!(S_dst, LIFSpike(pop.id, i, spike.time + pop.arp))
+        push!(S_dst, LIFSpike(pop.id, i, spike.time + pop.arp * rand()))
     end
 end
 
