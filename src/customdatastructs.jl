@@ -42,11 +42,12 @@ function Base.pop!(q::Queue)
 end
 
 function insertsorted!(q::Queue{T}, item::T, lt) where T
-        index = searchsortedfirst(q.items, item, lt=lt)
-        insert!(q, index, item)
+    index = searchsortedfirst(q.items, item, lt=lt)
+    insert!(q, index, item)
 end
 
 function clear!(q::Queue)
+    q.head[] = 1
     empty!(q.items)
 end
 

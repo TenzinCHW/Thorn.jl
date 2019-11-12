@@ -216,8 +216,10 @@ function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids
         end
         dependency = population_dependency(cortex, i)
         for ns in cortex.S_dst[i]
-            for pop in cortex.populations[dependency]
-                update_weights!(pop, dst_pop, cortex.weights[pop.id=>ns.pop_id], ns)
+            if train
+                for pop in cortex.populations[dependency]
+                    update_weights!(pop, dst_pop, cortex.weights[pop.id=>ns.pop_id], ns)
+                end
             end
             # insert new spikes into their respective pops' out_spikes fields
             insertsorted!(dst_pop.out_spikes, ns, (x,y)->x.time<y.time)
