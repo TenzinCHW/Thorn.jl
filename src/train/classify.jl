@@ -69,7 +69,7 @@ function probeactivity(activityfunc::Function, cortex::Cortex, loader::Dataloade
         for i in 1:len
             inp = [loader.dataset[cls, i]]
             process_sample!(cortex, inp)
-            spikes = cortex.populations[assign.popid]
+            spikes = cortex.populations[popid]
             # A function determines how active each neuron was for the example
             # In this case it only affects the neuron that had the most spikes
             # activityfunc must modify the activity[cls] array given to it
