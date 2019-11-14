@@ -36,7 +36,7 @@ function classify(cortex::Cortex, assign::ClassAssignment, loader::Dataloader)
         # pass into a cortex
         process_sample!(cortex, [data])
         # extract needed spikes
-        spikes = cortex.populations[assign.popid]
+        spikes = copy(cortex.populations[assign.popid].out_spikes.items)
         # pass into classify
         # put the result into an array
         push!(result, (cls, classify(spikes, assign)))
@@ -69,7 +69,7 @@ function probeactivity(activityfunc::Function, cortex::Cortex, loader::Dataloade
         for i in 1:len
             inp = [loader.dataset[cls, i]]
             process_sample!(cortex, inp)
-            spikes = cortex.populations[popid]
+            spikes = copy(cortex.populations[popid].out_spikes.items)
             # A function determines how active each neuron was for the example
             # In this case it only affects the neuron that had the most spikes
             # activityfunc must modify the activity[cls] array given to it
