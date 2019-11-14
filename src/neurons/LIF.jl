@@ -62,7 +62,7 @@ function LIF(rest_u, τ)
 end
 
 function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
-    fired = pop.u .>= pop.thresh && spike.time .> pop.fire_after# TODO only fire if past absolute refractory period after previous spike
+    fired = (pop.u .>= pop.thresh) .& (spike.time .> pop.fire_after)
     inds = findall(fired)
     for i in inds
         pop.fire_after[i] = spike.time + pop.arp
