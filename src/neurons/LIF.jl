@@ -17,7 +17,9 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     α::T
     τ::T
     arp::T
+    fire_after::Vector{T}
     thresh::Vector{T}
+    num_spikes::Vector{UInt}
     u_func::Function
     weight_update::Function
     η::T # Learning rate
@@ -32,14 +34,16 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         (id < 1 || sz < 1) ? error("sz and id must be > 0") : nothing
         !isa(weight_update, Function) ? error("weight_update must be a function") : nothing
         u = init_u * ones(sz)
+        fire_after = zeros(sz)
         thresh = threshval * ones(sz)
+        num_spikes = zeros(UInt, sz)
         u_func = LIF(rest_u, τ)
         last_spike = Array{Union{Spike, Nothing}}(undef)
         last_spike[] = nothing
         q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
-                       arp, thresh, u_func, weight_update, η,
-                       q, last_spike
+                       arp, fire_after, thresh, num_spikes, u_func,
+                       weight_update, η, q, last_spike
                        )
     end
 end
@@ -58,27 +62,32 @@ function LIF(rest_u, τ)
 end
 
 function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
-    fired = pop.u .>= pop.thresh
+    fired = pop.u .>= pop.thresh && spike.time .> pop.fire_after# TODO only fire if past absolute refractory period after previous spike
     inds = findall(fired)
     for i in inds
-        push!(S_dst, LIFSpike(pop.id, i, spike.time + pop.arp * rand()))
+        pop.fire_after[i] = spike.time + pop.arp
+        push!(S_dst, LIFSpike(pop.id, i, spike.time + rand()))
     end
 end
 
 function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
     if !isempty(spikes)
-        pop.u .= pop.spike_u # WTA circuit
+        if length(pop.out_spikes) == 0
+            pop.u .= pop.spike_u # WTA circuit
+        end
         update_spike!.(pop, spikes)
     end
 end
 
 function update_spike!(pop::LIFPopulation, s::Spike)
-    pop.thresh[s.neuron_id] += 0.01 * exp(0.001*length(pop.out_spikes.items))
+    pop.thresh[s.neuron_id] += 0.01 * exp(0.001*length(pop.num_spikes[s.neuron_id]))
+    pop.num_spikes[s.neuron_id] += 1
     pop.u[s.neuron_id] = pop.rest_u
 end
 
 function reset!(pop::LIFPopulation)
     pop.last_spike[] = nothing
+    pop.fire_after .= 0
     pop.u .= pop.init_u
 end
 
