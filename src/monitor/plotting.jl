@@ -1,15 +1,15 @@
-function rasterspikes(spikes::Vector{S}, cortex::Cortex) where S<:Spike
+function rasterspikes(cortex::Cortex) where S<:Spike
     currentht = 0.
     dy = 1
     x = Vector{typeof(currentht)}[]
     y = Vector{typeof(currentht)}[]
-    for (i, num) in enumerate(pop.length for pop in cortex.populations)
-        sp = filter(x->x.pop_id == i, spikes)
+    for pop in cortex.populations
+        sp = pop.out_spikes.items
         xs = [s.time for s in sp]
         ys = [currentht + s.neuron_id * dy for s in sp]
         push!(x, xs)
         push!(y, ys)
-        currentht += dy * (num + 1)
+        currentht += dy * pop.length
     end
     x, y
 end

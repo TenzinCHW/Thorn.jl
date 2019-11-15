@@ -47,9 +47,7 @@ x, y = gridify(plot_u, f, u_spikes, 1., 1000.)
 @test isfloatarray(x, 1)
 @test isfloatarray(y, 1)
 
-s = [pop.out_spikes.items for pop in cortex.populations]
-spikes = cat(s..., dims=1)
-x, y = rasterspikes(spikes, cortex)
+x, y = rasterspikes(cortex)
 @test all(isfloatarray.(x, 1))
 @test all(isfloatarray.(y, 1))
 
