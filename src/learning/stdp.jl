@@ -6,7 +6,7 @@ function stdp(pop::NeuronPopulation, w::AbstractFloat, pre::S, post::S) where S<
     if pre.time < post.time
         update = pop.α * exponent(pre.time, post.time, pop.τ)
     else
-        update = exponent(-pre.time, -post.time, pop.τ)
+        update = -exponent(-pre.time, -post.time, pop.τ)
     end
     w + pop.η * update
 end
