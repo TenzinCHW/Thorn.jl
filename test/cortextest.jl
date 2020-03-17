@@ -1,12 +1,8 @@
 sz = 5
 numsample = 4
 inp_kwargs = Dict(:sampleperiod=>50.) # 50 ms sample_period
-input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
 proc_kwargs = Dict(:τ=>20.4)
-neuron_types = [(LIFPopulation, sz, stdp, 0.01, proc_kwargs)]
-conn = [1=>2]
-spiketype = LIFSpike
-cortex = Cortex(input_neuron_types, neuron_types, conn, spiketype)
+cortex = createcortex(;inp_kwargs=inp_kwargs, proc_kwargs=proc_kwargs)
 data = [rand(sz, numsample)]
 process_sample!(cortex, data, 1.)
 @test all(isa.([pop.out_spikes for pop in cortex.populations], Queue{spiketype}))
