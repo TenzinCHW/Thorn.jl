@@ -16,3 +16,12 @@ function createcortex(;inp_kwargs::Dict=Dict(), proc_kwargs::Dict=Dict(),
     Cortex(input_neuron_types, neuron_types, conn, wt_init, spiketype)
 end
 
+function getrandomdata(cortex::Cortex, numsample::Int)
+    sz = cortex.input_populations[1].length
+    [rand(sz, numsample)]
+end
+
+function runprocesssample(args...)
+    process_sample!(args...)
+end
+

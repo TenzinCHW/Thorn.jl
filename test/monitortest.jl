@@ -17,13 +17,12 @@ end
 extractors = Dict("weights"=>getweights,
                   "u"=>getu)
 
-sz = 5
-numsample = 4
 wt_init() = 5 * rand()
 wt_init(m, n) = 30 * rand(m, n)
 cortex = createcortex(;wt_init=wt_init)
-data = [rand(sz, numsample)]
-monitor = process_sample!(cortex, data, 1., extractors)
+numsample = 4
+data = getrandomdata(cortex, numsample)
+monitor = runprocesssample(cortex, data, 1., extractors)
 
 import InteractiveUtils
 floatarraytypes(dim) = [Array{T, dim} for T in InteractiveUtils.subtypes(AbstractFloat)] 
