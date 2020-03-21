@@ -9,9 +9,9 @@ abstract type ProcessingPopulation <: NeuronPopulation end
 
 function update_weights!(pop::ProcessingPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     for s in pop.out_spikes
-        if s.time < spike.time
+        #if s.time < spike.time
             weights[s.neuron_id] = pop.weight_update(pop, weights[s.neuron_id], spike, s)
-        end
+        #end
     end
 end
 

@@ -24,7 +24,7 @@ module Thorn
     update_state!, output_spike!, reset!, compute_rate, generate_input,
     stdp,
     Cortex,
-    process_sample!, population_dependency, dependent_populations,
+    process_sample!, population_dependency, dependent_populations, freeze_weights!, unfreeze_weights!,
     Monitor,
     monitor!, collapserecord!, rasterspikes, gridify,
     Datasource,

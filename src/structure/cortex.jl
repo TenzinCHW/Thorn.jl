@@ -4,11 +4,12 @@ struct Cortex{T<:AbstractFloat}
     populations::Vector{NeuronPopulation}
     weights::Dict{Pair{Int, Int}, Array{T, 2}} # Input is along 2nd dimension
     connectivity_matrix::BitArray{2}
+    train_matrix::BitArray{2} # describes whether a connection should be trained
     S_earliest::Vector{Spike} # temp vector for holding sorted seq of earliest spikes from each pop to filter spike proposals
     S_dst::Dict{Int, Vector{Spike}} # temp dict for holding vectors of spike proposals for each pop after input spike enters pop
 
     # Constructor with connectivity_matrix and weight initialisation function
-    function Cortex(input_neuron_types::Vector, neuron_types::Vector, connectivity::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+    function Cortex(input_neuron_types::Vector, neuron_types::Vector, connectivity::Vector{Pair{Int, Int}}, train_conn::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         input_populations = make_inp_pops(input_neuron_types, spiketype)
@@ -23,6 +24,11 @@ struct Cortex{T<:AbstractFloat}
             connectivity_matrix[j, i] = true
         end
 
+        train_matrix = BitArray(zeros(num_pop, num_pop))
+        for (i, j) in train_conn
+            train_matrix[j, i] = true
+        end
+
         # Make the weights and insert into a Dict
         weights = Dict{Pair{Int, Int}, Array{typeof(wt_init()), 2}}()
         for j in 1:size(connectivity_matrix, 2)
@@ -35,12 +41,17 @@ struct Cortex{T<:AbstractFloat}
         S_earliest = Spike[]
         S_dst = Dict{Int, Vector{Spike}}(pop.id=>Spike[] for pop in populations)
         # wt_init() must return a single value of the same type as the weights
-        new{typeof(wt_init())}(input_populations, processing_populations, populations, weights, connectivity_matrix, S_earliest, S_dst)
+        new{typeof(wt_init())}(input_populations, processing_populations, populations, weights, connectivity_matrix, train_matrix, S_earliest, S_dst)
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
     function Cortex(input_neuron_types, neuron_types, connectivity, spiketype)
         Cortex(input_neuron_types, neuron_types, connectivity, rand, spiketype)
+    end
+
+    function Cortex(input_neuron_types, neuron_types, connectivity, wt_init, spiketype)
+        train_conn = connectivity
+        Cortex(input_neuron_types, neuron_types, connectivity, train_conn, wt_init, spiketype)
     end
 end
 
@@ -71,6 +82,19 @@ function make_proc_pops(neuron_types::Vector, num_inp_pop::Int)
         push!(processing_populations, ntype(i + num_inp_pop, sz, weight_update, lr; kwargs...))
     end
     processing_populations
+end
+
+function freeze_weights!(cortex::Cortex, conn::Pair{Int, Int})
+    freeze_unfreeze_weights!(cortex, conn, false)
+end
+
+function unfreeze_weights!(cortex::Cortex, conn::Pair{Int, Int})
+    freeze_unfreeze_weights!(cortex, conn, true)
+end
+
+function freeze_unfreeze_weights!(cortex, conn::Pair{Int, Int}, val::Bool)
+    i, j = conn
+    cortex.train_matrix[j, i] = val
 end
 
 # Assumes all inputs are normalized to 0. to 1.
@@ -209,7 +233,7 @@ function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids
         # set the spike state for those neurons that spiked successfully
         dst_pop = cortex.populations[i]
         update_spikes!(dst_pop, cortex.S_dst[i])
-        if train
+        if train && cortex.train_matrix[i, spike.pop_id]
             @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
             # update weights for output spike each dst_pop that happens before spike
             update_weights!(dst_pop, weights, spike)
@@ -218,7 +242,9 @@ function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids
         for ns in cortex.S_dst[i]
             if train
                 for pop in cortex.populations[dependency]
-                    update_weights!(pop, dst_pop, cortex.weights[pop.id=>ns.pop_id], ns)
+                    if cortex.train_matrix[i, pop.id]
+                        update_weights!(pop, dst_pop, cortex.weights[pop.id=>ns.pop_id], ns)
+                    end
                 end
             end
             # insert new spikes into their respective pops' out_spikes fields

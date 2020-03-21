@@ -1,15 +1,18 @@
 function defaultparams()
-    id = 1
     sz = 5
-    lr = 0.1
     lfn = stdp
+    lr = 0.1
     spiketype = LIFSpike
-    return id, sz, lr, lfn, spiketype
+    return sz, lfn, lr, spiketype
+end
+
+function createprocpop(id::Int)
+    LIFPopulation(id, defaultparams()[1:end-1]...) # Don't need spiketype for LIFPop
 end
 
 function createcortex(;inp_kwargs::Dict=Dict(), proc_kwargs::Dict=Dict(),
                      wt_init::Function=rand)
-    _, sz, lr, lfn, spiketype = defaultparams()
+    sz, lfn, lr, spiketype = defaultparams()
     input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
     neuron_types = [(LIFPopulation, sz, lfn, lr, proc_kwargs)]
     conn = [1=>2]
@@ -22,6 +25,10 @@ function getrandomdata(cortex::Cortex, numsample::Int)
 end
 
 function runprocesssample(args...)
-    process_sample!(args...)
+    runprocesssample(args..., Dict()...)
+end
+
+function runprocesssample(args...; kwargs...)
+    process_sample!(args...; kwargs...)
 end
 
