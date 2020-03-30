@@ -27,7 +27,7 @@ function generate_input(pop::RateInpPopulation, neuron_id::Int, sensor_inp::Vect
     start = 0.
     for (interval, numiter) in zip(timespacing, numiters)
         for i in 1:numiter
-            push!(spikes, pop.spiketype(pop.id, neuron_id, i * interval + start))
+            push!(spikes, pop.spiketype(pop.id, neuron_id, i * abs(interval) + start, sign(interval)))
         end
         start += pop.sampleperiod
     end

@@ -50,7 +50,7 @@ end
 
 function update_state!(pop::LIFPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
-    pop.u .= weights + pop.u_func.(pop.u, dt)
+    pop.u .= weights + pop.u_func.(pop.u, dt) * spike.sign
     pop.last_spike[] = spike
 end
 
@@ -62,11 +62,12 @@ function LIF(rest_u, τ)
 end
 
 function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
-    fired = pop.u .>= pop.thresh#(pop.u .>= pop.thresh) .& (spike.time .>= pop.fire_after)
+    fired = pop.u .>= pop.thresh
+    #fired = (pop.u .>= pop.thresh) .& (spike.time .>= pop.fire_after)
     inds = findall(fired)
     for i in inds
         pop.fire_after[i] = spike.time + pop.arp
-        push!(S_dst, LIFSpike(pop.id, i, spike.time + rand()))
+        push!(S_dst, LIFSpike(pop.id, i, spike.time + rand(), 1)) # Last arg is sign
     end
 end
 

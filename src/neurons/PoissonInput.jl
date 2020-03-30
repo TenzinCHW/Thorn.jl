@@ -27,7 +27,7 @@ function generate_input(pop::PoissonInpPopulation{T}, neuron_id::Int, sensor_inp
     start = 0.
     for acc in expacc
         for t in acc
-            push!(spikes, pop.spiketype(pop.id, neuron_id, t + start))
+            push!(spikes, pop.spiketype(pop.id, neuron_id, t + start, sign(acc.rate)))
         end
         start += pop.sampleperiod
     end
@@ -55,5 +55,5 @@ function Base.iterate(e::ExpAccumulate, i=0)
     e.t, i + 1
 end
 
-randexp(rate) = - log(1 - rand()) / rate
+randexp(rate) = - log(1 - rand()) / abs(rate)
 
