@@ -26,7 +26,7 @@ Base.iterate(q::Queue, n::Nothing) = iterate(q.items, n)
 
 function Base.insert!(q::Queue{T}, index::Integer, item::T) where T
     if index < q.head[]
-        error("Head of Queue is at $(q.head[]). Cannot insert before this index.")
+        error("Head of Queue is at $(q.head[]). Cannot insert before this index. Trying to insert at $index.")
     else
         insert!(q.items, index, item)
     end
