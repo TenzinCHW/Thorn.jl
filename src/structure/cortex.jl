@@ -163,7 +163,7 @@ function propagatespikecollectoutput!(cortex::Cortex, spike::Spike, dst_pop_ids:
 end
 
 function nextspikebypop!(cortex::Cortex, dst_pop_ids::Vector{Int})
-    #TODO find earliest spike of all populations (including new ones) and sort
+    #TODO find earliest spike of all populations (include proposed spikes) and sort
     for pop in cortex.populations
         for dst_id in dst_pop_ids
             if pop.id in population_dependency(cortex, dst_id)
@@ -217,7 +217,7 @@ population_dependency(c::Cortex, i::Int) = findall(c.connectivity_matrix[i, :])
 timing(s::Spike) = s.time
 
 function filterafterearliest!(cortex::Cortex, dst_pop_ids::Vector{Int})
-    #TODO loop over all earliest spikes and filter the new spikes produced by pops that each will go to
+    # loop over all earliest spikes and filter the new spikes produced by pops that each will go to
     for s in cortex.S_earliest
         for i in dst_pop_ids
             if s.pop_id in population_dependency(cortex, i)

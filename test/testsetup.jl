@@ -13,15 +13,16 @@ end
 function createcortex(;inp_kwargs::Dict=Dict(), proc_kwargs::Dict=Dict(),
                      wt_init::Function=rand)
     sz, lfn, lr, spiketype = defaultparams()
-    input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
+    #input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
+    input_neuron_types = [InputPopulationPair(PoissonInpPopulation, sz, inp_kwargs)...]
     neuron_types = [(LIFPopulation, sz, lfn, lr, proc_kwargs)]
-    conn = [1=>2]
+    conn = [1=>3, 2=>3]
     Cortex(input_neuron_types, neuron_types, conn, wt_init, spiketype)
 end
 
 function getrandomdata(cortex::Cortex, numsample::Int)
-    sz = cortex.input_populations[1].length
-    [rand(sz, numsample)]
+    sz = [pop.length for pop in cortex.input_populations]
+    [i .- 1 for i in 2rand.(sz, numsample)]
 end
 
 function runprocesssample(args...)

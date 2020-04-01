@@ -18,7 +18,7 @@ module Thorn
 
     export Spike, LIFSpike,
     Queue, insertsorted!,
-    NeuronPopulation, InputPopulation, ProcessingPopulation,
+    NeuronPopulation, InputPopulation, ProcessingPopulation, InputPopulationPair,
     process_spike!, generate_input_spikes!, insertsorted,
     LIFPopulation, PoissonInpPopulation, RateInpPopulation,
     update_state!, output_spike!, reset!, compute_rate, generate_input,

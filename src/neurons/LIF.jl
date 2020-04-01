@@ -4,8 +4,8 @@ def_rest_u = 0.
 def_spike_u = -5.
 def_α = .8
 def_τ = 16.8
-def_thresh = 2.
-def_arp = 20.
+def_thresh = 1.
+def_arp = 2.
 
 struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     id::Int
@@ -62,20 +62,20 @@ function LIF(rest_u, τ)
 end
 
 function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
-    fired = pop.u .>= pop.thresh
-    #fired = (pop.u .>= pop.thresh) .& (spike.time .>= pop.fire_after)
+    fired = abs.(pop.u) .>= pop.thresh
     inds = findall(fired)
     for i in inds
-        pop.fire_after[i] = spike.time + pop.arp
-        push!(S_dst, LIFSpike(pop.id, i, spike.time + rand(), 1)) # Last arg is sign
+        fire_time = spike.time + rand()
+        if fire_time >= pop.fire_after[i]
+            pop.fire_after[i] = spike.time + pop.arp
+            push!(S_dst, LIFSpike(pop.id, i, fire_time, sign(pop.u[i]))) # Last arg is sign
+        end
     end
 end
 
 function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
     if !isempty(spikes)
-        if length(pop.out_spikes) == 0
-            pop.u .= pop.spike_u # WTA circuit
-        end
+        pop.u .= pop.spike_u # WTA circuit
         update_spike!.(pop, spikes)
     end
 end

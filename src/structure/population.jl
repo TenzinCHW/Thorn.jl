@@ -7,6 +7,12 @@ Base.iterate(p::NeuronPopulation, n::Nothing) = nothing
 
 abstract type ProcessingPopulation <: NeuronPopulation end
 
+function InputPopulationPair(args...)
+    k = args[end]
+    k[:sign] = -1 # Only need to modify sign for neg, since default sign is pos
+    (args), (args[1:end-1]..., k)
+end
+
 function update_weights!(pop::ProcessingPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     for s in pop.out_spikes
         #if s.time < spike.time
@@ -38,6 +44,6 @@ function generate_input_spikes!(input_pop::InputPopulation, data::Array{T, 2}, m
         push!(input_pop.out_spikes, s)
     end
     # Must sort the out_spikes of each InputNeuronPopulation after generating the spikes in reverse order based on time property of each spike
-    sort!(input_pop.out_spikes.items, by=x->x.time, rev=true);
+    sort!(input_pop.out_spikes.items, by=x->x.time);
 end
 

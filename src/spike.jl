@@ -11,7 +11,7 @@ struct LIFSpike{T<:AbstractFloat} <: Spike
     pop_id::Int # Population index containing neuron that fired this spike
     neuron_id::Int # Localindex of neuron that fired this spike
     time::T # Global time in ms since start of simulation
-    sign::Int
+    sign::Int8
 
     function LIFSpike(pop_id, neuron_id, time, sign)
         sign ∉ (-1, 1) && error("sign must be -1 or 1")
