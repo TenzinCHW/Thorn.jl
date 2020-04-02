@@ -34,7 +34,7 @@ function classify(cortex::Cortex, assign::ClassAssignment, loader::Dataloader)
     result = Tuple{String, String}[]
     for (cls, data) in loader
         # pass into a cortex
-        process_sample!(cortex, [data])
+        process_sample!(cortex, data)
         # extract needed spikes
         spikes = copy(cortex.populations[assign.popid].out_spikes.items)
         # pass into classify
