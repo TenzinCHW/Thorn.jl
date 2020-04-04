@@ -99,8 +99,8 @@ end
 
 # Assumes all inputs are normalized to 0. to 1.
 function process_sample!(cortex::Cortex, input::Vector{Array{T, 2}},
-                         maxval::T=1.,
-                         extractors::Union{Dict, Nothing}=nothing;
+                         maxval::T=1.;
+                         extractors::Union{Dict, Nothing}=nothing,
                          train=true, reset_state=true) where {T<:AbstractFloat}
     # Reset all populations in cortex to ensure they're in correct state before processing
     reset!(cortex, reset_state)

@@ -22,7 +22,7 @@ wt_init(m, n) = 30 * rand(m, n)
 cortex = createcortex(;wt_init=wt_init)
 numsample = 4
 data = getrandomdata(cortex, numsample)
-monitor = runprocesssample(cortex, data, 1., extractors)
+monitor = runprocesssample(cortex, data; extractors=extractors)
 
 import InteractiveUtils
 floatarraytypes(dim) = [Array{T, dim} for T in InteractiveUtils.subtypes(AbstractFloat)] 
