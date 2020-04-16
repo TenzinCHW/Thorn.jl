@@ -56,8 +56,7 @@ end
 
 function LIF(rest_u, τ)
     function u_func(u, δt)
-        c = - τ * log(abs(u - rest_u))
-        rest_u + flipsign(exp(-(δt + c) / τ), u)
+        rest_u + (u - rest_u) * exp(-δt / τ)
     end
 end
 
