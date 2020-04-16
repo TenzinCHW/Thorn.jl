@@ -6,6 +6,7 @@ def_α = .8
 def_τ = 16.8
 def_thresh = 1.
 def_arp = 2.
+def_rrp = 20.
 
 struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     id::Int
@@ -64,9 +65,9 @@ function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     fired = abs.(pop.u) .>= pop.thresh
     inds = findall(fired)
     for i in inds
-        fire_time = spike.time + rand()
+        fire_time = spike.time + pop.arp
         if fire_time >= pop.fire_after[i]
-            pop.fire_after[i] = spike.time + pop.arp
+            pop.fire_after[i] = spike.time + pop.rrp
             push!(S_dst, LIFSpike(pop.id, i, fire_time, sign(pop.u[i]))) # Last arg is sign
         end
     end
