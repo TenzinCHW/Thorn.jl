@@ -26,7 +26,7 @@ module Thorn
     Cortex,
     process_sample!, population_dependency, dependent_populations, freeze_weights!, unfreeze_weights!,
     Monitor,
-    monitor!, collapserecord!, rasterspikes, gridify,
+    getspike!, spikesfromrecord, getweights!, getu!, getvarfrompop, monitor!, collapserecord!, rasterspikes, gridify,
     Datasource,
     datasrcreadbits, datasrcwritebits!, datasrcread, datasrcwrite!, datasrcitems,
     Dataset,
