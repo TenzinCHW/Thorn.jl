@@ -24,7 +24,7 @@ end
 
 function generate_input(pop::RateInpPopulation, neuron_id::Int, sensor_inp::Vector{T}, maxval::T) where T<:AbstractFloat
     timespacing = 1 ./ compute_rate.(pop, maxval, sensor_inp)
-    numiter = Int.(floor.(pop.sampleperiod ./ timespacing))
+    numiters = Int.(floor.(pop.sampleperiod ./ timespacing))
     spikes = pop.spiketype[]
     start = 0.
     for (interval, numiter) in zip(timespacing, numiters)
