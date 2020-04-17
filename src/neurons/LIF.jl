@@ -18,6 +18,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     α::T
     τ::T
     arp::T
+    rrp::T
     fire_after::Vector{T}
     thresh::Vector{T}
     num_spikes::Vector{UInt}
@@ -30,7 +31,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     function LIFPopulation(id, sz, weight_update, η; init_u=def_u,
                            rest_u=def_rest_u, spike_u=def_spike_u,
                            α=def_α, τ=def_τ, threshval=def_thresh,
-                           arp=def_arp
+                           arp=def_arp, rrp=def_rrp
                           )
         (id < 1 || sz < 1) ? error("sz and id must be > 0") : nothing
         !isa(weight_update, Function) ? error("weight_update must be a function") : nothing
@@ -43,7 +44,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         last_spike[] = nothing
         q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
-                       arp, fire_after, thresh, num_spikes, u_func,
+                       arp, rrp, fire_after, thresh, num_spikes, u_func,
                        weight_update, η, q, last_spike
                        )
     end
@@ -51,7 +52,7 @@ end
 
 function update_state!(pop::LIFPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
-    pop.u .= weights + pop.u_func.(pop.u, dt) * spike.sign
+    pop.u .= (spike.time .>= pop.fire_after) .* weights + pop.u_func.(pop.u, dt) * spike.sign
     pop.last_spike[] = spike
 end
 
@@ -62,14 +63,12 @@ function LIF(rest_u, τ)
 end
 
 function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
-    fired = abs.(pop.u) .>= pop.thresh
+    fired = pop.u .>= pop.thresh
     inds = findall(fired)
     for i in inds
         fire_time = spike.time + pop.arp
-        if fire_time >= pop.fire_after[i]
-            pop.fire_after[i] = spike.time + pop.rrp
-            push!(S_dst, LIFSpike(pop.id, i, fire_time, sign(pop.u[i]))) # Last arg is sign
-        end
+        pop.fire_after[i] = spike.time + pop.rrp
+        push!(S_dst, LIFSpike(pop.id, i, fire_time, sign(pop.u[i]))) # Last arg is sign
     end
 end
 
