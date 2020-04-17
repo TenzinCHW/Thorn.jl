@@ -16,6 +16,7 @@ struct RateInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     function RateInpPopulation(id, sz, spiketype; maxrate=maxrate, minrate=minrate, sampleperiod=sampleperiod, sign=1)
         (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
 
+        sign ∉ (-1, 1) && error("sign must be 1 or -1")
         out_spikes = Queue(spiketype)
         new{typeof(maxrate), spiketype}(id, maxrate, minrate, sampleperiod, spiketype, out_spikes, sz, sign)
     end
