@@ -23,7 +23,7 @@ struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
 end
 
 function generate_input(pop::PoissonInpPopulation{T}, neuron_id::Int, sensor_inp::Vector{T}, maxval::T) where T<:AbstractFloat
-    rate = compute_rate.(pop, maxval, sensor_inp)
+    rate = compute_rate.(pop, sensor_inp)
     expacc = ExpAccumulate.(rate, pop.sampleperiod)
     spikes = pop.spiketype[]
     start = 0.
