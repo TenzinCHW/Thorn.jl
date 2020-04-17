@@ -23,7 +23,7 @@ struct RateInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
 end
 
 function generate_input(pop::RateInpPopulation, neuron_id::Int, sensor_inp::Vector{T}, maxval::T) where T<:AbstractFloat
-    timespacing = 1 ./ compute_rate.(pop, sensor_inp)
+    timespacing = 1 ./ compute_rate.(pop, maxval, sensor_inp)
     numiter = Int.(floor.(pop.sampleperiod ./ timespacing))
     spikes = pop.spiketype[]
     start = 0.
