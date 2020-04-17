@@ -19,3 +19,5 @@ for (cls, item) in dloader
     @test isa(item, typeof(rand(5)))
 end
 
+rm(fname)
+
