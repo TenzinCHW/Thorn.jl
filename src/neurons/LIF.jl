@@ -4,6 +4,8 @@ def_rest_u = 0.
 def_spike_u = -5.
 def_α = .8
 def_τ = 16.8
+def_γ1 = 0.01
+def_γ2 = 0.001
 def_thresh = 1.
 def_arp = 2.
 def_rrp = 20.
@@ -17,6 +19,8 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     spike_u::T
     α::T
     τ::T
+    γ1::T
+    γ2::T
     arp::T
     rrp::T
     fire_after::Vector{T}
@@ -30,8 +34,9 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
 
     function LIFPopulation(id, sz, weight_update, η; init_u=def_u,
                            rest_u=def_rest_u, spike_u=def_spike_u,
-                           α=def_α, τ=def_τ, threshval=def_thresh,
-                           arp=def_arp, rrp=def_rrp
+                           α=def_α, τ=def_τ, γ1=def_γ1, γ2=def_γ2,
+                           threshval=def_thresh, arp=def_arp,
+                           rrp=def_rrp
                           )
         (id < 1 || sz < 1) ? error("sz and id must be > 0") : nothing
         !isa(weight_update, Function) ? error("weight_update must be a function") : nothing
@@ -44,8 +49,9 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         last_spike[] = nothing
         q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
-                       arp, rrp, fire_after, thresh, num_spikes, u_func,
-                       weight_update, η, q, last_spike
+                       γ1, γ2, arp, rrp, fire_after, thresh,
+                       num_spikes, u_func, weight_update, η, q,
+                       last_spike
                        )
     end
 end
@@ -80,7 +86,7 @@ function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
 end
 
 function update_spike!(pop::LIFPopulation, s::Spike)
-    pop.thresh[s.neuron_id] += 0.01 * exp(0.001*length(pop.num_spikes[s.neuron_id]))
+    pop.thresh[s.neuron_id] += pop.γ1 * exp(pop.γ2*length(pop.num_spikes[s.neuron_id]))
     pop.num_spikes[s.neuron_id] += 1
     pop.u[s.neuron_id] = pop.rest_u
 end
