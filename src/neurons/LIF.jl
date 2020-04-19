@@ -74,7 +74,7 @@ function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     for i in inds
         fire_time = spike.time + pop.arp
         pop.fire_after[i] = spike.time + pop.rrp
-        push!(S_dst, LIFSpike(pop.id, i, fire_time, sign(pop.u[i]))) # Last arg is sign
+        push!(S_dst, LIFSpike(pop.id, i, fire_time, 1))#sign(pop.u[i]))) # Last arg is sign
     end
 end
 
