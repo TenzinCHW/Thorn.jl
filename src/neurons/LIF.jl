@@ -86,8 +86,9 @@ function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
 end
 
 function update_spike!(pop::LIFPopulation, s::Spike)
-    pop.thresh[s.neuron_id] += pop.γ1 * exp(pop.γ2*length(pop.num_spikes[s.neuron_id]))
-    pop.num_spikes[s.neuron_id] += 1
+    #pop.thresh[s.neuron_id] += pop.γ1 * exp(pop.γ2*length(pop.num_spikes[s.neuron_id]))
+    #pop.num_spikes[s.neuron_id] += 1
+    pop.thresh[s.neuron_id] = (1 + pop.γ1) * pop.u[s.neuron_id]
     pop.u[s.neuron_id] = pop.rest_u
 end
 
