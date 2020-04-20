@@ -50,7 +50,7 @@ struct Cortex{T<:AbstractFloat}
     end
 
     function Cortex(input_neuron_types, neuron_types, connectivity, wt_init, spiketype)
-        train_conn = connectivity
+        train_conn = connectivity[:]
         Cortex(input_neuron_types, neuron_types, connectivity, train_conn, wt_init, spiketype)
     end
 end
