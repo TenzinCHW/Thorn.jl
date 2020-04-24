@@ -27,8 +27,8 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     thresh::Vector{T}
     num_spikes::Vector{UInt}
     u_func::Function
-    weight_update::Function
     η::T # Learning rate
+    thornfuncs::ThornProcFuncs
     out_spikes::Queue{LIFSpike}
     last_spike::Array{Union{Spike, Nothing}, 0}
 
@@ -45,30 +45,22 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         thresh = threshval * ones(sz)
         num_spikes = zeros(UInt, sz)
         u_func = LIF(rest_u, τ)
+        thornfuncs = ThornProcFuncs(recvspike!, validoutspikes!, weight_update, reset!)
+        q = Queue(LIFSpike)
         last_spike = Array{Union{Spike, Nothing}}(undef)
         last_spike[] = nothing
-        q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
         new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
                        γ1, γ2, arp, rrp, fire_after, thresh,
-                       num_spikes, u_func, weight_update, η, q,
+                       num_spikes, u_func, η, thornfuncs, q,
                        last_spike
                        )
     end
 end
 
-function update_state!(pop::LIFPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
+function recvspike!(pop::LIFPopulation, S_dst::Vector{Spike}, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
     pop.u .= (spike.time .>= pop.fire_after) .* weights + pop.u_func.(pop.u, dt) * spike.sign
     pop.last_spike[] = spike
-end
-
-function LIF(rest_u, τ)
-    function u_func(u, δt)
-        rest_u + (u - rest_u) * exp(-δt / τ)
-    end
-end
-
-function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     fired = pop.u .>= pop.thresh
     inds = findall(fired)
     for i in inds
@@ -78,7 +70,13 @@ function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
     end
 end
 
-function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
+function LIF(rest_u, τ)
+    function u_func(u, δt)
+        rest_u + (u - rest_u) * exp(-δt / τ)
+    end
+end
+
+function validoutspikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
     if !isempty(spikes)
         pop.u .= pop.spike_u # WTA circuit
         update_spike!.(pop, spikes)
