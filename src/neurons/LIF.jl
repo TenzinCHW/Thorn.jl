@@ -56,10 +56,18 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     end
 end
 
-function update_state!(pop::LIFPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
+function recvspike!(pop::LIFPopulation, proposedspikes::Vector{Spike},
+                    weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
     pop.u .= (spike.time .>= pop.fire_after) .* weights + pop.u_func.(pop.u, dt) * spike.sign
     pop.last_spike[] = spike
+    fired = pop.u .>= pop.thresh
+    inds = findall(fired)
+    for i in inds
+        fire_time = spike.time + pop.arp
+        pop.fire_after[i] = spike.time + pop.rrp
+        push!(proposedspikes, LIFSpike(pop.id, i, fire_time, 1))#sign(pop.u[i]))) # Last arg is sign
+    end
 end
 
 function LIF(rest_u, τ)
@@ -68,17 +76,7 @@ function LIF(rest_u, τ)
     end
 end
 
-function output_spike!(S_dst::Vector{Spike}, pop::LIFPopulation, spike::Spike)
-    fired = pop.u .>= pop.thresh
-    inds = findall(fired)
-    for i in inds
-        fire_time = spike.time + pop.arp
-        pop.fire_after[i] = spike.time + pop.rrp
-        push!(S_dst, LIFSpike(pop.id, i, fire_time, 1))#sign(pop.u[i]))) # Last arg is sign
-    end
-end
-
-function update_spikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
+function updatevalidspikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spike
     if !isempty(spikes)
         pop.u .= pop.spike_u # WTA circuit
         update_spike!.(pop, spikes)

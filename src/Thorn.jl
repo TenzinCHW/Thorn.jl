@@ -4,7 +4,6 @@ module Thorn
     include("structure/population.jl")
     include("structure/cortex.jl")
     include("neurons/LIF.jl")
-    #include("neurons/SRM.jl")
     include("neurons/Input.jl")
     include("neurons/PoissonInput.jl")
     include("neurons/RateInput.jl")
@@ -21,7 +20,7 @@ module Thorn
     NeuronPopulation, InputPopulation, ProcessingPopulation, InputPopulationPair,
     process_spike!, generate_input_spikes!, insertsorted,
     LIFPopulation, PoissonInpPopulation, RateInpPopulation,
-    update_state!, output_spike!, reset!, compute_rate, generate_input,
+    recvspike!, updatevalidspikes!, reset!, compute_rate, generate_input,
     stdp,
     Cortex,
     process_sample!, population_dependency, dependent_populations, freeze_weights!, unfreeze_weights!,

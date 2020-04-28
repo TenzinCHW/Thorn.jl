@@ -6,7 +6,7 @@ struct Cortex{T<:AbstractFloat}
     connectivity_matrix::BitArray{2}
     train_matrix::BitArray{2} # describes whether a connection should be trained
     S_earliest::Vector{Spike} # temp vector for holding sorted seq of earliest spikes from each pop to filter spike proposals
-    S_dst::Dict{Int, Vector{Spike}} # temp dict for holding vectors of spike proposals for each pop after input spike enters pop
+    S_proposed::Dict{Int, Vector{Spike}} # temp dict for holding vectors of spike proposals for each pop after input spike enters pop
 
     # Constructor with connectivity_matrix and weight initialisation function
     function Cortex(input_neuron_types::Vector, neuron_types::Vector, connectivity::Vector{Pair{Int, Int}}, train_conn::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
@@ -39,9 +39,9 @@ struct Cortex{T<:AbstractFloat}
             end
         end
         S_earliest = Spike[]
-        S_dst = Dict{Int, Vector{Spike}}(pop.id=>Spike[] for pop in populations)
+        S_proposed = Dict{Int, Vector{Spike}}(pop.id=>Spike[] for pop in populations)
         # wt_init() must return a single value of the same type as the weights
-        new{typeof(wt_init())}(input_populations, processing_populations, populations, weights, connectivity_matrix, train_matrix, S_earliest, S_dst)
+        new{typeof(wt_init())}(input_populations, processing_populations, populations, weights, connectivity_matrix, train_matrix, S_earliest, S_proposed)
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
@@ -132,7 +132,7 @@ function process_spike!(cortex::Cortex, spike::Spike, train::Bool)
     nextspikebypop!(cortex, dst_pop_ids)
     filterafterearliest!(cortex, dst_pop_ids)
     outputspikesandupdateweights!(cortex, spike, dst_pop_ids, train)
-    emptyallarr!(cortex.S_dst)
+    emptyallarr!(cortex.S_proposed)
 end
 
 function pop_next_spike!(pops::Vector{NeuronPopulation})
@@ -155,10 +155,9 @@ function propagatespikecollectoutput!(cortex::Cortex, spike::Spike, dst_pop_ids:
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
         dst_pop = cortex.populations[i]
         @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
-        update_state!(dst_pop, weights, spike)
+        recvspike!(dst_pop, cortex.S_proposed[i], weights, spike)
         # Find next_spike for each of the populations that just processed spikes and call output_spike! to generate output spikes for each of those populations
-        output_spike!(cortex.S_dst[i], dst_pop, spike)
-        sort!(cortex.S_dst[i], by=x->x.time)
+        sort!(cortex.S_proposed[i], by=x->x.time)
     end
 end
 
@@ -167,7 +166,7 @@ function nextspikebypop!(cortex::Cortex, dst_pop_ids::Vector{Int})
     for pop in cortex.populations
         for dst_id in dst_pop_ids
             if pop.id in population_dependency(cortex, dst_id)
-                newspikes = cortex.S_dst[pop.id]
+                newspikes = cortex.S_proposed[pop.id]
                 if !isempty(pop.out_spikes)
                     if !isempty(newspikes)
                         push!(cortex.S_earliest, get_next_spike(pop, newspikes))
@@ -221,7 +220,7 @@ function filterafterearliest!(cortex::Cortex, dst_pop_ids::Vector{Int})
     for s in cortex.S_earliest
         for i in dst_pop_ids
             if s.pop_id in population_dependency(cortex, i)
-                filter!(sp->sp.time<=s.time, cortex.S_dst[i])
+                filter!(sp->sp.time<=s.time, cortex.S_proposed[i])
             end
         end
     end
@@ -232,14 +231,14 @@ function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids
     for i in dst_pop_ids
         # set the spike state for those neurons that spiked successfully
         dst_pop = cortex.populations[i]
-        update_spikes!(dst_pop, cortex.S_dst[i])
+        updatevalidspikes!(dst_pop, cortex.S_proposed[i])
         if train && cortex.train_matrix[i, spike.pop_id]
             @views weights = cortex.weights[spike.pop_id=>i][:, spike.neuron_id]
             # update weights for output spike each dst_pop that happens before spike
             update_weights!(dst_pop, weights, spike)
         end
         dependency = population_dependency(cortex, i)
-        for ns in cortex.S_dst[i]
+        for ns in cortex.S_proposed[i]
             if train
                 for pop in cortex.populations[dependency]
                     if cortex.train_matrix[i, pop.id]
@@ -253,8 +252,8 @@ function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids
     end
 end
 
-function emptyallarr!(S_dst::Dict{Int, Vector{Spike}})
-    for (i, arr) in S_dst
+function emptyallarr!(S_proposed::Dict{Int, Vector{Spike}})
+    for (i, arr) in S_proposed
         empty!(arr)
     end
 end
