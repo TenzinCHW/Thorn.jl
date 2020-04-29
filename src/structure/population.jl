@@ -13,19 +13,19 @@ function InputPopulationPair(args...)
     (args), (args[1:end-1]..., k)
 end
 
-function update_weights!(pop::ProcessingPopulation, weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
+function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spike) where T<:AbstractFloat
     for s in pop.out_spikes
         #if s.time < spike.time
-            weights[s.neuron_id] = pop.weight_update(pop, weights[s.neuron_id], spike, s)
+            pop.weight_update(weights.value, pop, spike, s)
         #end
     end
 end
 
-function update_weights!(srcpop::NeuronPopulation, dstpop::ProcessingPopulation, weights::Array{T, 2}, newspike::Spike) where T<:AbstractFloat
+function update_weights!(srcpop::NeuronPopulation, dstpop::ProcessingPopulation, weights::Weights, newspike::Spike) where T<:AbstractFloat
     #TODO update weights for each spike in populations that dst depends on for each new spike produced by dst
     for s in srcpop.out_spikes.items
         if s.time < newspike.time
-            weights[newspike.neuron_id, s.neuron_id] = dstpop.weight_update(dstpop, weights[newspike.neuron_id, s.neuron_id], s, newspike)
+            dstpop.weight_update(weights.value, dstpop, s, newspike)
         end
     end
 end

@@ -57,7 +57,8 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
 end
 
 function recvspike!(pop::LIFPopulation, proposedspikes::Vector{Spike},
-                    weights::SubArray{T, 1}, spike::Spike) where T<:AbstractFloat
+                    weights::Array{T, 2}, spike::Spike) where T<:AbstractFloat
+    weights = weights[:, spike.neuron_id]
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
     pop.u .= (spike.time .>= pop.fire_after) .* weights + pop.u_func.(pop.u, dt) * spike.sign
     pop.last_spike[] = spike

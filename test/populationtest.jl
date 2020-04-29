@@ -5,7 +5,7 @@ lr = 0.1
 weights = 5 * ones(sz, sz)
 spiketype = LIFSpike
 inp_pop = PoissonInpPopulation(id, sz, spiketype)
-proc_pop = LIFPopulation(id, sz, stdp, lr)
+proc_pop = LIFPopulation(id, sz, stdp!, lr)
 data = ones(sz, numsample)
 maxval = max(data...)
 
@@ -17,7 +17,7 @@ generate_input_spikes!(inp_pop, data, maxval)
 # Processing population test
 for s in inp_pop.out_spikes
     outspikes = Spike[]
-    @views recvspike!(proc_pop, outspikes, weights[:, Int(s.neuron_id)], s)
+    @views recvspike!(proc_pop, outspikes, weights, s)
     voltages = proc_pop.u
     num_spike = sum(voltages .> proc_pop.thresh)
     @test length(outspikes) == num_spike

@@ -1,6 +1,6 @@
 function defaultparams()
     sz = 5
-    lfn = stdp
+    lfn = stdp!
     lr = 0.1
     spiketype = LIFSpike
     return sz, lfn, lr, spiketype

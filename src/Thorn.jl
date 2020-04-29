@@ -1,6 +1,7 @@
 module Thorn
     include("spike.jl")
     include("customdatastructs.jl")
+    include("structure/weights.jl")
     include("structure/population.jl")
     include("structure/cortex.jl")
     include("neurons/LIF.jl")
@@ -21,7 +22,7 @@ module Thorn
     process_spike!, generate_input_spikes!, insertsorted,
     LIFPopulation, PoissonInpPopulation, RateInpPopulation,
     recvspike!, updatevalidspikes!, reset!, compute_rate, generate_input,
-    stdp,
+    stdp!,
     Cortex,
     process_sample!, population_dependency, dependent_populations, freeze_weights!, unfreeze_weights!,
     Monitor,

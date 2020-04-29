@@ -24,7 +24,7 @@ function getweights!(record, cortex::Cortex, spike::S) where S<:Spike
     dependent_ids = dependent_populations(cortex, spike.pop_id)
     for (p2p, w) in cortex.weights
         if last(p2p) in dependent_ids
-            push!(record[p2p], (spike, deepcopy(w)))
+            push!(record[p2p], (spike, deepcopy(w.value)))
         end
     end
 end
