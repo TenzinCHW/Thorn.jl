@@ -7,7 +7,7 @@ numsample = 4
 data = getrandomdata(cortex, numsample)
 
 function weightsonly(weights::Dict)
-    [last(w).value for w in weights]
+    [v.value for (k, v) in weights]
 end
 
 oldweights = deepcopy(cortex.weights)
@@ -22,7 +22,8 @@ runprocesssample(cortex, data, 1.; train=false)
 @test weightsonly(oldweights) == weightsonly(cortex.weights)
 
 freeze_weights!(cortex, 1=>3)
-freeze_weights!(cortex, 2=>3)
 runprocesssample(cortex, data, 1.)
-@test weightsonly(oldweights) == weightsonly(cortex.weights)
+@test weightsonly(oldweights)[1] == weightsonly(cortex.weights)[1]
+# We did not freeze the 2=>3 layer of weights
+@test weightsonly(oldweights)[2] != weightsonly(cortex.weights)[2]
 
