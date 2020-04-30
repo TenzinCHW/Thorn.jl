@@ -9,7 +9,12 @@ struct Cortex{T<:AbstractFloat}
     S_proposed::Dict{Int, Vector{Spike}} # temp dict for holding vectors of spike proposals for each pop after input spike enters pop
 
     # Constructor with connectivity_matrix and weight initialisation function
-    function Cortex(input_neuron_types::Vector, neuron_types::Vector, connectivity::Vector{Pair{Int, Int}}, train_conn::Vector{Pair{Int, Int}}, wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+    function Cortex(
+            input_neuron_types::Vector,
+            neuron_types::Vector,
+            connectivity::Vector{Pair{Int, Int}},
+            train_conn::Vector{Pair{Int, Int}},
+            wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         input_populations = make_inp_pops(input_neuron_types, spiketype)
@@ -42,7 +47,15 @@ struct Cortex{T<:AbstractFloat}
         S_earliest = Spike[]
         S_proposed = Dict{Int, Vector{Spike}}(pop.id=>Spike[] for pop in populations)
         # wt_init() must return a single value of the same type as the weights
-        new{typeof(wt_init())}(input_populations, processing_populations, populations, weights, connectivity_matrix, train_matrix, S_earliest, S_proposed)
+        new{typeof(wt_init())}(
+            input_populations,
+            processing_populations,
+            populations,
+            weights,
+            connectivity_matrix,
+            train_matrix,
+            S_earliest,
+            S_proposed)
     end
 
     # Constructor with connectivity_matrix (use rand() for generating weights
@@ -50,7 +63,8 @@ struct Cortex{T<:AbstractFloat}
         Cortex(input_neuron_types, neuron_types, connectivity, rand, spiketype)
     end
 
-    function Cortex(input_neuron_types, neuron_types, connectivity, wt_init, spiketype)
+    function Cortex(
+            input_neuron_types, neuron_types, connectivity, wt_init, spiketype)
         train_conn = connectivity[:]
         Cortex(input_neuron_types, neuron_types, connectivity, train_conn, wt_init, spiketype)
     end
@@ -99,10 +113,13 @@ function freeze_unfreeze_weights!(cortex, conn::Pair{Int, Int}, val::Bool)
 end
 
 # Assumes all inputs are normalized to 0. to 1.
-function process_sample!(cortex::Cortex, input::Vector{Array{T, 2}},
-                         maxval::T=1.;
-                         extractors::Union{Dict, Nothing}=nothing,
-                         train=true, reset_state=true) where {T<:AbstractFloat}
+function process_sample!(
+        cortex::Cortex,
+        input::Vector{Array{T, 2}},
+        maxval::T=1.;
+        extractors::Union{Dict, Nothing}=nothing,
+        train=true,
+        reset_state=true) where {T<:AbstractFloat}
     # Reset all populations in cortex to ensure they're in correct state before processing
     reset!(cortex, reset_state)
     # Generate spike data from input; each array is for each corresponding input pop
@@ -151,7 +168,8 @@ function get_next_spike(pops::Vector{NeuronPopulation})
     earliest_spikes[ind]
 end
 
-function propagatespikecollectoutput!(cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int})
+function propagatespikecollectoutput!(
+        cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int})
     for i in dst_pop_ids
         # Route this spike to the correct populations with their weights using the process_spike function for every population that the spike is routed to
         dst_pop = cortex.populations[i]
@@ -228,7 +246,8 @@ function filterafterearliest!(cortex::Cortex, dst_pop_ids::Vector{Int})
     empty!(cortex.S_earliest)
 end
 
-function outputspikesandupdateweights!(cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int}, train::Bool)
+function outputspikesandupdateweights!(
+        cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int}, train::Bool)
     for i in dst_pop_ids
         # set the spike state for those neurons that spiked successfully
         dst_pop = cortex.populations[i]

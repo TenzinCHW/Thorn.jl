@@ -13,7 +13,7 @@ function InputPopulationPair(args...)
     (args), (args[1:end-1]..., k)
 end
 
-function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spike) where T<:AbstractFloat
+function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spike)
     for s in pop.out_spikes
         #if s.time < spike.time
             pop.weight_update(weights.value, pop, spike, s)
@@ -21,7 +21,11 @@ function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spi
     end
 end
 
-function update_weights!(srcpop::NeuronPopulation, dstpop::ProcessingPopulation, weights::Weights, newspike::Spike) where T<:AbstractFloat
+function update_weights!(
+        srcpop::NeuronPopulation,
+        dstpop::ProcessingPopulation,
+        weights::Weights,
+        newspike::Spike)
     #TODO update weights for each spike in populations that dst depends on for each new spike produced by dst
     for s in srcpop.out_spikes.items
         if s.time < newspike.time
@@ -32,7 +36,8 @@ end
 
 abstract type InputPopulation <: NeuronPopulation end
 
-function generate_input_spikes!(input_pop::InputPopulation, data::Array{T, 2}, maxval::T) where T<:AbstractFloat
+function generate_input_spikes!(
+        input_pop::InputPopulation, data::Array{T, 2}, maxval::T) where T<:AbstractFloat
     # Given a set of raw sensor data and an InputNeuronPopulation, generate input spikes using the generate_input function for the InputNeuronPopulation
     # First dim of raw data must match length of corresponding InputNeuronPopulation
     if !(isequal(size(data, 1), input_pop.length))

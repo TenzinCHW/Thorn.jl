@@ -37,7 +37,8 @@ function getvarfrompop(popid::Int, extractor::Function)
     end
 end
 
-function monitorrecord!(record::Union{DefaultDict, Nothing}, cortex::Cortex, spike::Spike, extractors)
+function monitorrecord!(
+        record::Union{DefaultDict, Nothing}, cortex::Cortex, spike::Spike, extractors)
     if !isnothing(record)
         monitor!(record, cortex, spike, extractors)
     end

@@ -48,16 +48,35 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         last_spike = Array{Union{Spike, Nothing}}(undef)
         last_spike[] = nothing
         q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
-        new{typeof(η)}(id, sz, u, init_u, rest_u, spike_u, α, τ,
-                       γ1, γ2, arp, rrp, fire_after, thresh,
-                       num_spikes, u_func, weight_update, η, q,
-                       last_spike
-                       )
+        new{typeof(η)}(
+            id,
+            sz,
+            u,
+            init_u,
+            rest_u,
+            spike_u,
+            α,
+            τ,
+            γ1,
+            γ2,
+            arp,
+            rrp,
+            fire_after,
+            thresh,
+            num_spikes,
+            u_func,
+            weight_update,
+            η,
+            q,
+            last_spike)
     end
 end
 
-function recvspike!(pop::LIFPopulation, proposedspikes::Vector{Spike},
-                    weights::Array{T, 2}, spike::Spike) where T<:AbstractFloat
+function recvspike!(
+        pop::LIFPopulation,
+        proposedspikes::Vector{Spike},
+        weights::Array{T, 2},
+        spike::Spike) where T<:AbstractFloat
     weights = weights[:, spike.neuron_id]
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
     pop.u .= (spike.time .>= pop.fire_after) .* weights + pop.u_func.(pop.u, dt) * spike.sign

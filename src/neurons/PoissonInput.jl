@@ -13,16 +13,28 @@ struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     length::Int
     sign::Int8
 
-    function PoissonInpPopulation(id, sz, spiketype; maxrate=maxrate, minrate=minrate, sampleperiod=sampleperiod, sign=1)
+    function PoissonInpPopulation(
+            id,
+            sz,
+            spiketype;
+            maxrate=maxrate,
+            minrate=minrate,
+            sampleperiod=sampleperiod,
+            sign=1)
         (id < 1 || sz < 1) ? error("id and sz must be > 0") : nothing
 
         sign ∉ (-1, 1) && error("sign must be 1 or -1")
         out_spikes = Queue(spiketype)
-        new{typeof(maxrate), spiketype}(id, maxrate, minrate, sampleperiod, spiketype, out_spikes, sz, sign)
+        new{typeof(maxrate), spiketype}(
+            id, maxrate, minrate, sampleperiod, spiketype, out_spikes, sz, sign)
     end
 end
 
-function generate_input(pop::PoissonInpPopulation{T}, neuron_id::Int, sensor_inp::Vector{T}, maxval::T) where T<:AbstractFloat
+function generate_input(
+        pop::PoissonInpPopulation{T},
+        neuron_id::Int,
+        sensor_inp::Vector{T},
+        maxval::T) where T<:AbstractFloat
     rate = compute_rate.(pop, maxval, sensor_inp)
     expacc = ExpAccumulate.(rate, pop.sampleperiod)
     spikes = pop.spiketype[]

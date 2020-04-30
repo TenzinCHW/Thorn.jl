@@ -14,8 +14,13 @@ function rasterspikes(cortex::Cortex) where S<:Spike
     x, y
 end
 
-function gridify(val::Vector{T}, diffeq, spikes::Vector{S}, dt::T, time_end::T;
-                 init_val::T=0.) where {T<:AbstractFloat, S<:Spike, A}
+function gridify(
+        val::Vector{T},
+        diffeq,
+        spikes::Vector{S},
+        dt::T,
+        time_end::T;
+        init_val::T=0.) where {T<:AbstractFloat, S<:Spike, A}
     # val is an array of initial values of the diffeq corresponding to the times of the spikes
     # spikes is an array of spikes
     !isequal(length(val), length(spikes)) ? error("val should be same length as spikes") : nothing
@@ -34,8 +39,13 @@ function gridify(val::Vector{T}, diffeq, spikes::Vector{S}, dt::T, time_end::T;
     x, y
 end
 
-function interpolate!(x::Array{T, 1}, y::Array{T, 1}, f::Function, u0::T,
-                     start::T, time_end::T) where T<:AbstractFloat
+function interpolate!(
+        x::Array{T, 1},
+        y::Array{T, 1},
+        f::Function,
+        u0::T,
+        start::T,
+        time_end::T) where T<:AbstractFloat
     dy = f.(u0, filter(dx->start<=dx<time_end, x) .- start)
     for ddy in dy
         push!(y, ddy)

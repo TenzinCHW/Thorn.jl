@@ -13,7 +13,13 @@ struct ClassAssignment
     end
 end
 
-function classify(cortex::Cortex, popid::Int, trainloader::Dataloader, testloader::Dataloader, act, dec)
+function classify(
+        cortex::Cortex,
+        popid::Int,
+        trainloader::Dataloader,
+        testloader::Dataloader,
+        act,
+        dec)
     activity = probeactivity(act, cortex, trainloader, popid)
     assign = ClassAssignment(act, dec, activity, popid)
     result = classify(cortex, assign, testloader)
@@ -54,7 +60,8 @@ end
 
 # I assume the assign function for clustering is very similar to this API
 # loader must contain train data
-function probeactivity(activityfunc::Function, cortex::Cortex, loader::Dataloader, popid::Int)
+function probeactivity(
+        activityfunc::Function, cortex::Cortex, loader::Dataloader, popid::Int)
     numneurons = cortex.populations[popid].length
     # For each class, we keep track of how "active" each neuron is
     # (can be number of spikes, number of spikes within a window, time of first spike)
@@ -88,7 +95,8 @@ end
 countspikes(spikes, numneurons) = [count(s->s.neuron_id == i, spikes) for i in 1:numneurons]
 
 # example of decisionfunc
-function decidemostspikes(activity::Vector{S}, probedactivity::Dict{String, Vector{T} where T}) where S
+function decidemostspikes(
+        activity::Vector{S}, probedactivity::Dict{String, Vector{T} where T}) where S
 # Each neuron is mapped to the class that it was most active for using a decision function
     ks, vs = keys(probedactivity), values(probedactivity)
     # neuronactivities is a matrix of n x cls

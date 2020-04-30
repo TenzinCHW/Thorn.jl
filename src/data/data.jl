@@ -28,9 +28,11 @@ end
 
 function swaptraintest!(dataset::Dataset, traintestdir::String)
     dataset.traintestdir = traintestdir
-    dataset.data, dataset.activeset, dataset.classes = getdsdata(dataset.datasrc,
-                                                            traintestdir,
-                                                            dataset.classes)
+    dataset.data, dataset.activeset, dataset.classes =
+        getdsdata(
+            dataset.datasrc,
+            traintestdir,
+            dataset.classes)
 end
 
 function resizeset!(dataset::Dataset, percentage::Int64)
@@ -46,8 +48,8 @@ function resizeset!(dataset::Dataset, percentage::Int64)
 end
 
 # Gets class/filename as an array
-function sourcenames(data::Dict{String, Vector{String}},
-                                               activecls::Vector{String})
+function sourcenames(
+        data::Dict{String, Vector{String}}, activecls::Vector{String})
     activedata = filter(cls_d->first(cls_d) in activecls, data)
     setnames = []
     for entry in activedata
