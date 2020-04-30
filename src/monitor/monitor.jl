@@ -5,7 +5,8 @@ function getspike!(record, cortex, spike)
 end
 
 function spikesfromrecord(record, extractorname::String)::Vector{Spike}
-    if extractorname in keys(record) # If no spikes are produced then it won't appear in the record
+    # If no spikes are produced then it won't appear in the record
+    if extractorname in keys(record)
         s = record[extractorname]
         return first(s["spikes"])
     else

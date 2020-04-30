@@ -21,8 +21,8 @@ function gridify(
         dt::T,
         time_end::T;
         init_val::T=0.) where {T<:AbstractFloat, S<:Spike, A}
-    # val is an array of initial values of the diffeq corresponding to the times of the spikes
-    # spikes is an array of spikes
+    # val is an array of initial values of the diffeq
+    # corresponding to the times of the spikes
     !isequal(length(val), length(spikes)) ? error("val should be same length as spikes") : nothing
     isfloat.(val) # Should not throw error
     sort!(spikes, by=s->s.time)

@@ -97,7 +97,8 @@ countspikes(spikes, numneurons) = [count(s->s.neuron_id == i, spikes) for i in 1
 # example of decisionfunc
 function decidemostspikes(
         activity::Vector{S}, probedactivity::Dict{String, Vector{T} where T}) where S
-# Each neuron is mapped to the class that it was most active for using a decision function
+    # Each neuron is mapped to the class that it was most active for
+    # using a decision function
     ks, vs = keys(probedactivity), values(probedactivity)
     # neuronactivities is a matrix of n x cls
     neuronactivities = hcat(vs...)
