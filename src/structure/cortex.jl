@@ -147,7 +147,7 @@ end
 
 function process_spike!(cortex::Cortex, spike::Spike, train::Bool)
     dst_pop_ids = dependent_populations(cortex, spike.pop_id)
-    propagatespikecollectoutput!(cortex, spike, dst_pop_ids)
+    propagatespike!(cortex, spike, dst_pop_ids)
     nextspikebypop!(cortex, dst_pop_ids)
     filterafterearliest!(cortex, dst_pop_ids)
     outputspikesandupdateweights!(cortex, spike, dst_pop_ids, train)
@@ -169,7 +169,7 @@ function get_next_spike(pops::Vector{NeuronPopulation})
     earliest_spikes[ind]
 end
 
-function propagatespikecollectoutput!(
+function propagatespike!(
         cortex::Cortex, spike::Spike, dst_pop_ids::Vector{Int})
     for i in dst_pop_ids
         # Route this spike to the correct populations with their weights
