@@ -16,8 +16,8 @@ function createcortex(;inp_kwargs::Dict=Dict(), proc_kwargs::Dict=Dict(),
     #input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
     input_neuron_types = [InputPopulationPair(PoissonInpPopulation, sz, inp_kwargs)...]
     neuron_types = [(LIFPopulation, sz, proc_kwargs)]
-    conn = [(1=>3, lfn, lr), (2=>3, lfn, lr)]
-    Cortex(input_neuron_types, neuron_types, conn, wt_init, spiketype)
+    conn = [(1=>3, wt_init, lfn, lr), (2=>3, wt_init, lfn, lr)]
+    Cortex(input_neuron_types, neuron_types, conn, spiketype)
 end
 
 function getrandomdata(cortex::Cortex, numsample::Int)

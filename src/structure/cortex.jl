@@ -1,60 +1,47 @@
-struct Cortex{T<:AbstractFloat}
+struct Cortex{S<:Spike}
     input_populations::Vector{InputPopulation}
     processing_populations::Vector{ProcessingPopulation}
     populations::Vector{NeuronPopulation}
     weights::Dict{Pair{Int, Int}, Weights} # Input is along 2nd dimension
     connectivity_matrix::BitArray{2}
-    train_matrix::BitArray{2} # describes whether a connection should be trained
-    S_earliest::Vector{Spike} # temp vector for holding sorted seq of earliest spikes from each pop to filter spike proposals
-    S_proposed::Dict{Int, Vector{Spike}} # temp dict for holding vectors of spike proposals for each pop after input spike enters pop
+    # describes whether a connection should be trained
+    train_matrix::BitArray{2}
+    # temp vector for holding sorted seq of earliest spikes from
+    # each pop to filter spike proposals
+    S_earliest::Vector{Spike}
+    # temp dict for holding vectors of spike proposals for each
+    # pop after input spike enters pop
+    S_proposed::Dict{Int, Vector{Spike}}
 
     # Constructor with connectivity_matrix and weight initialisation function
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Tuple{Pair{Int, Int}, F, S}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, F, FF, S}},
             train_conn::Vector{Pair{Int, Int}},
-            wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat, F<:Function}
+            spiketype::UnionAll) where {T<:Any, S<:AbstractFloat, F<:Function, FF<:Function}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         input_populations = make_inp_pops(input_neuron_types, spiketype)
         num_inp_pop = length(input_populations)
         processing_populations = make_proc_pops(neuron_types, num_inp_pop)
-
         populations = vcat(input_populations, processing_populations)
         num_pop = length(populations)
 
-        connectivity_matrix = makematrix(first.(connectivity), num_pop)
-        #for (i, j) in connectivity
-        #    connectivity_matrix[j, i] = true
-        #end
-
         train_matrix = makematrix(train_conn, num_pop)
-        #for (i, j) in train_conn
-        #    train_matrix[j, i] = true
-        #end
-
-        # Make the weights and insert into a Dict
+        connectivity_matrix = makematrix(first.(connectivity), num_pop)
         weights = Dict{Pair{Int, Int}, Weights}()
         for conn in connectivity
-            ij, weightupdatefn, lr = conn
+            ij, wt_init, weightupdatefn, lr = conn
             i, j = ij
             weightval = wt_init(populations[j].length, populations[i].length)
             weightstruct = Weights(weightval, weightupdatefn, lr)
             weights[ij] = weightstruct
         end
-        #for j in 1:num_pop
-        #    for i in 1:num_pop
-        #        if (connectivity_matrix[i, j])
-        #            w = wt_init(populations[i].length, populations[j].length)
-        #            weights[j=>i] = Weights(w, lfn, lr)
-        #        end
-        #    end
-        #end
-        S_earliest = Spike[]
-        S_proposed = Dict{Int, Vector{Spike}}(pop.id=>Spike[] for pop in populations)
-        # wt_init() must return a single value of the same type as the weights
-        new{typeof(wt_init())}(
+
+        S_earliest = spiketype[]
+        S_proposed = Dict{Int, Vector{spiketype}}(pop.id=>spiketype[] for pop in populations)
+        new{spiketype}(
             input_populations,
             processing_populations,
             populations,
@@ -71,9 +58,9 @@ struct Cortex{T<:AbstractFloat}
     end
 
     function Cortex(
-            input_neuron_types, neuron_types, connectivity, wt_init, spiketype)
+            input_neuron_types, neuron_types, connectivity, spiketype)
         train_conn = first.(connectivity)
-        Cortex(input_neuron_types, neuron_types, connectivity, train_conn, wt_init, spiketype)
+        Cortex(input_neuron_types, neuron_types, connectivity, train_conn, spiketype)
     end
 end
 
