@@ -183,38 +183,36 @@ end
 function nextspikebypop!(cortex::Cortex, dst_pop_ids::Vector{Int})
     # find each population's earliest spike which might cancel proposed spikes
     for pop in cortex.populations
-        for dst_id in dst_pop_ids
-            if pop.id in population_dependency(cortex, dst_id)
-                newspikes = cortex.S_proposed[pop.id]
-                if !isempty(pop.out_spikes)
-                    if !isempty(newspikes)
-                        push!(cortex.S_earliest, get_next_spike(pop, newspikes))
-                    else
-                        push!(cortex.S_earliest, get_next_spike(pop))
-                    end
-                else
-                    if !isempty(newspikes)
-                        push!(cortex.S_earliest, get_next_spike(newspikes))
-                    end
-                end
-            end
+        nextspike = get_next_spike(pop, cortex.S_proposed[pop.id])
+        if !isnothing(nextspike)
+            push!(cortex.S_earliest, nextspike)
         end
     end
     sort!(cortex.S_earliest, by=s->s.time)
 end
 
 function get_next_spike(pop::NeuronPopulation, newspikes::Vector{Spike})
-    popspike = get_next_spike(pop)
-    earliest_new = get_next_spike(newspikes)
-    popspike.time < earliest_new.time ? popspike : earliest_new
+    nextpopspike = get_next_spike(pop)
+    nextnewspike = get_next_spike(newspikes)
+    if !isnothing(nextpopspike)
+        if !isnothing(nextnewspike)
+            if nextpopspike.time < nextnewspike.time
+                return nextpopspike
+            else
+                return nextnewspike
+            end
+        else
+            return nextpopspike
+        end
+    end
 end
 
 function get_next_spike(pop::NeuronPopulation)
-    first(pop.out_spikes)
+    get_next_spike(pop.out_spikes)
 end
 
-function get_next_spike(spikes::Vector{S}) where S<:Spike
-    first(spikes)
+function get_next_spike(spikes)
+    !isempty(spikes) ? first(spikes) : nothing
 end
 
 has_out_spikes(pop::NeuronPopulation) = num_out_spikes(pop) > 0
