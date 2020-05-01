@@ -27,19 +27,22 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     thresh::Vector{T}
     num_spikes::Vector{UInt}
     u_func::Function
-    weight_update::Function
-    η::T # Learning rate
     out_spikes::Queue{LIFSpike}
     last_spike::Array{Union{Spike, Nothing}, 0}
 
-    function LIFPopulation(id, sz, weight_update, η; init_u=def_u,
-                           rest_u=def_rest_u, spike_u=def_spike_u,
-                           α=def_α, τ=def_τ, γ1=def_γ1, γ2=def_γ2,
-                           threshval=def_thresh, arp=def_arp,
+    function LIFPopulation(id, sz;
+                           init_u=def_u,
+                           rest_u=def_rest_u,
+                           spike_u=def_spike_u,
+                           α=def_α,
+                           τ=def_τ,
+                           γ1=def_γ1,
+                           γ2=def_γ2,
+                           threshval=def_thresh,
+                           arp=def_arp,
                            rrp=def_rrp
                           )
         (id < 1 || sz < 1) ? error("sz and id must be > 0") : nothing
-        !isa(weight_update, Function) ? error("weight_update must be a function") : nothing
         u = init_u * ones(sz)
         fire_after = zeros(sz)
         thresh = threshval * ones(sz)
@@ -48,7 +51,7 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         last_spike = Array{Union{Spike, Nothing}}(undef)
         last_spike[] = nothing
         q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
-        new{typeof(η)}(
+        new{typeof(init_u)}(
             id,
             sz,
             u,
@@ -65,8 +68,6 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
             thresh,
             num_spikes,
             u_func,
-            weight_update,
-            η,
             q,
             last_spike)
     end

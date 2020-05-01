@@ -12,9 +12,9 @@ struct Cortex{T<:AbstractFloat}
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Pair{Int, Int}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, F, S}},
             train_conn::Vector{Pair{Int, Int}},
-            wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat}
+            wt_init::Function, spiketype::UnionAll) where {T<:Any, S<:AbstractFloat, F<:Function}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         input_populations = make_inp_pops(input_neuron_types, spiketype)
@@ -24,26 +24,33 @@ struct Cortex{T<:AbstractFloat}
         populations = vcat(input_populations, processing_populations)
         num_pop = length(populations)
 
-        connectivity_matrix = BitArray(zeros(num_pop, num_pop))
-        for (i, j) in connectivity
-            connectivity_matrix[j, i] = true
-        end
+        connectivity_matrix = makematrix(first.(connectivity), num_pop)
+        #for (i, j) in connectivity
+        #    connectivity_matrix[j, i] = true
+        #end
 
-        train_matrix = BitArray(zeros(num_pop, num_pop))
-        for (i, j) in train_conn
-            train_matrix[j, i] = true
-        end
+        train_matrix = makematrix(train_conn, num_pop)
+        #for (i, j) in train_conn
+        #    train_matrix[j, i] = true
+        #end
 
         # Make the weights and insert into a Dict
         weights = Dict{Pair{Int, Int}, Weights}()
-        for j in 1:size(connectivity_matrix, 2)
-            for i in 1:size(connectivity_matrix, 1)
-                if (connectivity_matrix[i, j])
-                    w = wt_init(populations[i].length, populations[j].length)
-                    weights[j=>i] = Weights(w)
-                end
-            end
+        for conn in connectivity
+            ij, weightupdatefn, lr = conn
+            i, j = ij
+            weightval = wt_init(populations[j].length, populations[i].length)
+            weightstruct = Weights(weightval, weightupdatefn, lr)
+            weights[ij] = weightstruct
         end
+        #for j in 1:num_pop
+        #    for i in 1:num_pop
+        #        if (connectivity_matrix[i, j])
+        #            w = wt_init(populations[i].length, populations[j].length)
+        #            weights[j=>i] = Weights(w, lfn, lr)
+        #        end
+        #    end
+        #end
         S_earliest = Spike[]
         S_proposed = Dict{Int, Vector{Spike}}(pop.id=>Spike[] for pop in populations)
         # wt_init() must return a single value of the same type as the weights
@@ -65,7 +72,7 @@ struct Cortex{T<:AbstractFloat}
 
     function Cortex(
             input_neuron_types, neuron_types, connectivity, wt_init, spiketype)
-        train_conn = connectivity[:]
+        train_conn = first.(connectivity)
         Cortex(input_neuron_types, neuron_types, connectivity, train_conn, wt_init, spiketype)
     end
 end
@@ -88,15 +95,23 @@ end
 function make_proc_pops(neuron_types::Vector, num_inp_pop::Int)
     processing_populations = ProcessingPopulation[]
     for i in eachindex(neuron_types)
-        if length(neuron_types[i]) == 5
-            ntype, sz, weight_update, lr, kwargs = neuron_types[i]
+        if length(neuron_types[i]) == 3
+            ntype, sz, kwargs = neuron_types[i]
         else
-            ntype, sz, weight_update, lr = neuron_types[i]
+            ntype, sz = neuron_types[i]
             kwargs = Dict()
         end
-        push!(processing_populations, ntype(i + num_inp_pop, sz, weight_update, lr; kwargs...))
+        push!(processing_populations, ntype(i + num_inp_pop, sz; kwargs...))
     end
     processing_populations
+end
+
+function makematrix(matval::Vector{Pair{Int, Int}}, numpop)
+    matrix = BitArray(zeros(numpop, numpop))
+    for (i, j) in matval
+        matrix[j, i] = true
+    end
+    return matrix
 end
 
 function freeze_weights!(cortex::Cortex, conn::Pair{Int, Int})

@@ -5,7 +5,7 @@ lr = 0.1
 weights = 5 * ones(sz, sz)
 spiketype = LIFSpike
 inp_pop = PoissonInpPopulation(id, sz, spiketype)
-proc_pop = LIFPopulation(id, sz, stdp!, lr)
+proc_pop = LIFPopulation(id, sz)
 data = ones(sz, numsample)
 maxval = max(data...)
 

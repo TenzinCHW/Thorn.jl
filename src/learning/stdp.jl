@@ -1,19 +1,18 @@
-# Okay this part is a bit more confusing...
-# Should I apply stdp for every pair of input and output spikes or just the last input and last output spike?
-# If I do just last input and last output, I just have to apply a weight update before processing each input spike and after each output spike
+# This function assumes that the weights are a 2D array
 function stdp!(
-        weights::Array{T, 2},
+        weights::Weights,
         pop::NeuronPopulation,
         pre::S,
         post::S) where {T<:AbstractFloat, S<:Spike}
-    α, η, τ = pop.α, pop.η, pop.τ
+    weightval = weights.value
+    α, τ = pop.α, pop.τ
     if pre.time < post.time
-        update = pop.α * exponent(pre.time, post.time, pop.τ)
+        update = α * exponent(pre.time, post.time, τ)
     else
-        update = -exponent(-pre.time, -post.time, pop.τ)
+        update = -exponent(-pre.time, -post.time, τ)
     end
-    w = weights[post.neuron_id, pre.neuron_id]
-    weights[post.neuron_id, pre.neuron_id] = w + pop.η * update
+    w = weightval[post.neuron_id, pre.neuron_id]
+    weights.value[post.neuron_id, pre.neuron_id] = w + weights.lr * update
 end
 
 exponent(pre::T, post::T, τ::T) where T<:AbstractFloat = exp((pre - post) / τ)
