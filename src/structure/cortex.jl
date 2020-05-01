@@ -52,11 +52,6 @@ struct Cortex{S<:Spike}
             S_proposed)
     end
 
-    # Constructor with connectivity_matrix (use rand() for generating weights
-    function Cortex(input_neuron_types, neuron_types, connectivity, spiketype)
-        Cortex(input_neuron_types, neuron_types, connectivity, rand, spiketype)
-    end
-
     function Cortex(
             input_neuron_types, neuron_types, connectivity, spiketype)
         train_conn = first.(connectivity)
