@@ -30,7 +30,7 @@ struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     end
 end
 
-function generate_input(
+function generate_spikes(
         pop::PoissonInpPopulation{T},
         neuron_id::Int,
         sensor_inp::Vector{T},

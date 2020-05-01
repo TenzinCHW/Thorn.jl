@@ -47,7 +47,7 @@ function generate_input_spikes!(
     end
     # Call generate_input for each vector of inputs in second dim
     # broadcast across the first dimension
-    spikes = [generate_input(input_pop, i, data[i, :], maxval) for i in 1:input_pop.length]
+    spikes = [generate_spikes(input_pop, i, data[i, :], maxval) for i in 1:input_pop.length]
     for s in Iterators.flatten(spikes)
         push!(input_pop.out_spikes, s)
     end
