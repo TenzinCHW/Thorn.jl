@@ -30,6 +30,6 @@ module Thorn
     Datasource,
     datasrcreadbits, datasrcwritebits!, datasrcread, datasrcwrite!, datasrcitems,
     Dataset,
-    swaptraintest!, resizeset!, shufflebyclass!,
+    swappartition!, resizeprop!, shufflebyclass!,
     Dataloader
 end

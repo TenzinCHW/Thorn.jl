@@ -7,13 +7,13 @@ for (cls, item) in dset
     @test isa(item, typeof(rand(5)))
 end
 
-swaptraintest!(dset, "test")
+swappartition!(dset, "test")
 @test length(dset.activeset) == 2
-resizeset!(dset, 50) # Make dataset 50% the full size
+resizeprop!(dset, 50) # Make dataset 50% the full size
 @test length(dset.activeset) == 1
 shufflebyclass!(dset)
 
-dloader = Dataloader(dset, false)
+dloader = Dataloader(dset)
 for (cls, item) in dloader
     @test isa(cls, String)
     @test isa(item, typeof(rand(5)))
