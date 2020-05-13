@@ -3,6 +3,13 @@ maxrate = 20.
 minrate = 0.
 sampleperiod = 100. # Milliseconds
 
+"""
+    PoissonInpPopulation(id, sz spiketype;
+        maxrate=20., minrate=0., sampleperiod=100., sign=1)
+
+Datastructure for generating spikes via a Poisson process.
+Use this type as input to Cortex. See Cortex.
+"""
 struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     id::Int
     maxrate::T

@@ -1,8 +1,11 @@
+"""
+    Cortex(input_neuron_types::Vector, neuron_types::Vector, connectivity::Vector{}
+"""
 struct Cortex{S<:Spike}
     input_populations::Vector{InputPopulation}
     processing_populations::Vector{ProcessingPopulation}
     populations::Vector{NeuronPopulation}
-    weights::Dict{Pair{Int, Int}, Weights} # Input is along 2nd dimension
+    weights::Dict{Pair{Int, Int}, W} where W<:Weights # Input is along 2nd dimension
     connectivity_matrix::BitArray{2}
     # describes whether a connection should be trained
     train_matrix::BitArray{2}
@@ -17,9 +20,9 @@ struct Cortex{S<:Spike}
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Tuple{Pair{Int, Int}, F, FF, S}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, DataType, F, Dict{Symbol, A}}},
             train_conn::Vector{Pair{Int, Int}},
-            spiketype::UnionAll) where {T<:Any, S<:AbstractFloat, F<:Function, FF<:Function}
+            spiketype::UnionAll) where {A, F<:Function}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         input_populations = make_inp_pops(input_neuron_types, spiketype)
@@ -30,14 +33,10 @@ struct Cortex{S<:Spike}
 
         train_matrix = makematrix(train_conn, num_pop)
         connectivity_matrix = makematrix(first.(connectivity), num_pop)
-        weights = Dict{Pair{Int, Int}, Weights}()
-        for conn in connectivity
-            ij, wt_init, weightupdatefn, lr = conn
-            i, j = ij
-            weightval = wt_init(populations[j].length, populations[i].length)
-            weightstruct = Weights(weightval, weightupdatefn, lr)
-            weights[ij] = weightstruct
-        end
+        #weights = Dict{Pair{Int, Int}, A}() where A<:Weights
+        #for conn in connectivity
+        #            end
+        weights = Dict(makeweights(conn, populations) for conn in connectivity)
 
         S_earliest = spiketype[]
         S_proposed = Dict{Int, Vector{spiketype}}(pop.id=>spiketype[] for pop in populations)
@@ -86,6 +85,13 @@ function make_proc_pops(neuron_types::Vector, num_inp_pop::Int)
         push!(processing_populations, ntype(i + num_inp_pop, sz; kwargs...))
     end
     processing_populations
+end
+
+function makeweights(conn, populations)
+    ij, wt_type, wt_init, wt_params = conn
+    i, j = ij
+    weightval = wt_init(populations[j].length, populations[i].length)
+    ij=>wt_type(weightval; wt_params...)
 end
 
 function makematrix(matval::Vector{Pair{Int, Int}}, numpop)

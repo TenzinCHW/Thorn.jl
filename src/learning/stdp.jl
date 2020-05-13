@@ -1,15 +1,30 @@
-# This function assumes that the weights are a 2D array
-function stdp!(
-        weights::Weights,
-        pop::NeuronPopulation,
-        pre::S,
-        post::S) where {T<:AbstractFloat, S<:Spike}
+struct STDPWeights<:Weights
+    value
+    weight_update::Function
+    αp::AbstractFloat
+    αn::AbstractFloat
+    τp::AbstractFloat
+    τn::AbstractFloat
+    lr::AbstractFloat
+
+    function STDPWeights(
+            value; weight_update=stdp!, αp=.8, αn=.5, τp=5., τn=3., lr=.1)
+        new(value, weight_update, αp, αn, τp, τn, lr)
+    end
+end
+
+# This function assumes that weights.value is a 2D array
+"""
+    stdp!(weights::Weights, pre::S, post::S) where {T<:AbstractFloat, S<:Spike}
+STDP weight update function. Pass this as a connection parameter. See `Cortex`.
+"""
+function stdp!(weights::STDPWeights, pre::S, post::S) where {S<:Spike}
     weightval = weights.value
-    α, τ = pop.α, pop.τ
+    αp, αn, τp, τn = weights.αp, weights.αn, weights.τp, weights.τn
     if pre.time < post.time
-        update = α * exponent(pre.time, post.time, τ)
+        update = αp * exponent(pre.time, post.time, τp)
     else
-        update = -exponent(-pre.time, -post.time, τ)
+        update = -αn * exponent(-pre.time, -post.time, τn)
     end
     w = weightval[post.neuron_id, pre.neuron_id]
     weights.value[post.neuron_id, pre.neuron_id] = w + weights.lr * update
