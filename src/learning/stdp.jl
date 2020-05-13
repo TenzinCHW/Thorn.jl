@@ -1,6 +1,5 @@
 struct STDPWeights<:Weights
     value
-    weight_update::Function
     αp::AbstractFloat
     αn::AbstractFloat
     τp::AbstractFloat
@@ -8,17 +7,17 @@ struct STDPWeights<:Weights
     lr::AbstractFloat
 
     function STDPWeights(
-            value; weight_update=stdp!, αp=.8, αn=.5, τp=5., τn=3., lr=.1)
-        new(value, weight_update, αp, αn, τp, τn, lr)
+            value; αp=.8, αn=.5, τp=5., τn=3., lr=.1)
+        new(value, αp, αn, τp, τn, lr)
     end
 end
 
 # This function assumes that weights.value is a 2D array
 """
-    stdp!(weights::Weights, pre::S, post::S) where {T<:AbstractFloat, S<:Spike}
+    updateweights!(weights::STDPWeights, pre::S, post::S) where {T<:AbstractFloat, S<:Spike}
 STDP weight update function. Pass this as a connection parameter. See `Cortex`.
 """
-function stdp!(weights::STDPWeights, pre::S, post::S) where {S<:Spike}
+function updateweights!(weights::STDPWeights, pre::S, post::S) where {S<:Spike}
     weightval = weights.value
     αp, αn, τp, τn = weights.αp, weights.αn, weights.τp, weights.τn
     if pre.time < post.time

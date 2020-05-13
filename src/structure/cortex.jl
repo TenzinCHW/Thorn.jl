@@ -88,7 +88,12 @@ function make_proc_pops(neuron_types::Vector, num_inp_pop::Int)
 end
 
 function makeweights(conn, populations)
-    ij, wt_type, wt_init, wt_params = conn
+    if length(conn) == 4
+        ij, wt_type, wt_init, wt_params = conn
+    else
+        ij, wt_type, wt_init = conn
+        wt_params = Dict{Symbol, Any}()
+    end
     i, j = ij
     weightval = wt_init(populations[j].length, populations[i].length)
     ij=>wt_type(weightval; wt_params...)
