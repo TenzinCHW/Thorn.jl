@@ -15,8 +15,7 @@ Examples
 ≡≡≡≡≡≡≡≡≡≡
 
 ```
-julia> dataset = Dataset("example.jld2", "train")
-output omitted
+julia> dataset = Dataset("example.jld2", "train");
 
 julia> for (k, v) in dataset
            println(k, " ", v)
@@ -30,8 +29,7 @@ class2 0.8067948527443549
 class2 0.10183891896498287
 class2 0.04750070239079185
 
-julia> dataset = Dataset("example.jld2", "train"; activecls=["class2"])
-output omitted
+julia> dataset = Dataset("example.jld2", "train"; activecls=["class2"]);
 
 julia> for (k, v) in dataset
            println(k, " ", v)
@@ -226,7 +224,7 @@ readfrompath(src::Datasource, path::String...) = datasrcread(src, joinpath(path.
 """
     `Dataloader(dataset::Dataset, shuffle::Bool=false, transform=x->x)`
 
-A datastructure that holds a reference to a Dataset.
+Constructs a datastructure that holds a reference to a Dataset.
 Controls iteration procedure such as whether to shuffle and transform the
 data on iteration.
 
@@ -234,8 +232,7 @@ Examples
 ≡≡≡≡≡≡≡≡≡≡
 
 ```
-julia> dataloader = Dataloader(dataset)
-output omitted
+julia> dataloader = Dataloader(dataset);
 
 julia> for (cls, sample) in dataloader
            println(cls, " ", sample)
@@ -252,8 +249,7 @@ class2 0.04750070239079185
 julia> add5(data) = data .+ 5
 add5 (generic function with 1 method)
 
-julia> dataloader = Dataloader(dataset, true, add5)
-output omitted
+julia> dataloader = Dataloader(dataset, true, add5);
 
 julia> for (cls, sample) in dataloader
            println(cls, " ", sample)

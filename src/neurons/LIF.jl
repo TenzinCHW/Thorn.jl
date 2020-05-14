@@ -10,10 +10,10 @@ def_arp = 2.
 def_rrp = 20.
 
 """
-    LIFPopulation(id, sz; kwargs...)
+    `LIFPopulation(id, sz; kwargs...)`
 
 Datastructure for the Leaky Integrate and Fire model.
-Use this type as input to Cortex. See Cortex.
+Use this type as input to `Cortex`. See `Cortex`.
 """
 struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     id::Int

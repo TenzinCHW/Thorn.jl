@@ -5,7 +5,12 @@
 # Pushing just pushes into the end of the queue
 # Inserting inserts into the array only if the insertion is after the head-th index
 # Indexing the queue indexes directly into the array (able to access items that have been popped)
+# TODO change implementation of the underlying datastructure to vEB tree or Calendar queue.
 
+"""
+    Queue{T}
+    This is a modified queue for Thorn, for internal usage.
+"""
 struct Queue{T}
     items::Vector{T}
     head::Array{Int, 0}
