@@ -1,8 +1,16 @@
 # Rates are in Hz
 maxrate = 20.
 minrate = 1.
-sampleperiod = 1000. # Milliseconds
+sampleperiod = 100. # Milliseconds
 
+"""
+    ```RateInpPopulation(
+        id, sz spiketype;
+        maxrate=20., minrate=0., sampleperiod=100., sign=1)```
+
+Datastructure for generating spikes at a constant frequency.
+Use this type as input to `Cortex`. See `Cortex`.
+"""
 struct RateInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     id::Int
     maxrate::T

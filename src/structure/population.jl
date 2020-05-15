@@ -16,7 +16,7 @@ end
 function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spike)
     for s in pop.out_spikes
         #if s.time < spike.time
-            weights.weight_update(weights, pop, spike, s)
+            updateweights!(weights, spike, s)
         #end
     end
 end
@@ -29,7 +29,7 @@ function update_weights!(
     # update weights for each spike in populations that dst depends on for each new spike produced by dst
     for s in srcpop.out_spikes.items
         if s.time < newspike.time
-            weights.weight_update(weights, dstpop, s, newspike)
+            updateweights!(weights, s, newspike)
         end
     end
 end

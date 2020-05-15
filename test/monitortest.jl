@@ -1,7 +1,7 @@
 spikesextractorname = "spikes"
 extractors = Dict("weights"=>getweights!,
                   "u"=>getu!,
-                  spikesextractorname=>getspike!)
+                  spikesextractorname=>getspikes!)
 
 wt_init() = 5 * rand()
 wt_init(m, n) = 30 * rand(m, n)
@@ -25,7 +25,7 @@ u_spikes, u = monitor["u"][3]
 
 plot_u = u[1,:] # Last dimension is time
 f = cortex.processing_populations[1].u_func
-x, y = gridify(plot_u, f, u_spikes, 1., 1000.)
+x, y = gridify(f, plot_u, u_spikes, 1., 1000.)
 @test length(x) == length(y)
 @test isfloatarray(x, 1)
 @test isfloatarray(y, 1)
