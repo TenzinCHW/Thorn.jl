@@ -56,3 +56,5 @@ function clear!(q::Queue)
     empty!(q.items)
 end
 
+Array(q::Queue) = q.items[q.head[]:end]
+

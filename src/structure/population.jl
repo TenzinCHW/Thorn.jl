@@ -14,11 +14,10 @@ function InputPopulationPair(args...)
 end
 
 function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spike)
-    for s in pop.out_spikes
-        #if s.time < spike.time
-            updateweights!(weights, spike, s)
-        #end
-    end
+    updateweights!(weights, spike, Array(pop.out_spikes))
+    #for s in pop.out_spikes
+    #    updateweights!(weights, spike, s)
+    #end
 end
 
 function update_weights!(
@@ -27,11 +26,13 @@ function update_weights!(
         weights::Weights,
         newspike::Spike)
     # update weights for each spike in populations that dst depends on for each new spike produced by dst
-    for s in srcpop.out_spikes.items
-        if s.time < newspike.time
-            updateweights!(weights, s, newspike)
-        end
-    end
+    spikes = filter(s->s.time < newspike.time, srcpop.out_spikes.items)
+    updateweights!(weights, spikes, newspike)
+    #for s in srcpop.out_spikes.items
+    #    if s.time < newspike.time
+    #        updateweights!(weights, s, newspike)
+    #    end
+    #end
 end
 
 abstract type InputPopulation <: NeuronPopulation end

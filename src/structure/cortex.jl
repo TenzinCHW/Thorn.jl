@@ -2,7 +2,7 @@
     ```Cortex(
         input_neuron_types::Vector,
         neuron_types::Vector,
-        connectivity::Vector{Tuple{Pair{Int, Int}, DataType, F, Dict{Symbol, A}}},
+        connectivity::Vector{Tuple{Pair{Int, Int}, Union{UnionAll, DataType}, F, Dict{Symbol, A}}},
         [train_conn::Vector{Pair{Int, Int}}],
         spiketype::UnionAll) where {A, F<:Function}```
 
@@ -47,9 +47,9 @@ struct Cortex{S<:Spike}
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Tuple{Pair{Int, Int}, DataType, F, Dict{Symbol, A}}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, Union{UA, DT}, F, Dict{Symbol, A}}},
             train_conn::Vector{Pair{Int, Int}},
-            spiketype::UnionAll) where {A, F<:Function}
+            spiketype::UnionAll) where {UA<:UnionAll, DT<:DataType, F<:Function, A}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
 
         input_populations = make_inp_pops(input_neuron_types, spiketype)
@@ -81,9 +81,9 @@ struct Cortex{S<:Spike}
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Tuple{Pair{Int, Int}, DataType, F}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, Union{UA, DT}, F}},
             train_conn::Vector{Pair{Int, Int}},
-            spiketype::UnionAll) where F<:Function
+            spiketype::UnionAll) where {UA<:UnionAll, DT<:DataType, F<:Function}
         connectivity =
             [Tuple([conn..., Dict{Symbol, Any}()]) for conn in connectivity]
         Cortex(input_neuron_types, neuron_types, connectivity, train_conn, spiketype)

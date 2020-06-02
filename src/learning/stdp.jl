@@ -5,8 +5,8 @@ Constructs a datastructure for storing weight values and related parameters for 
 `αp` is α_{+} while `αn` is α_{-}.
 `τp` is τ_{+} while `τn` is τ_{-}.
 """
-struct STDPWeights<:Weights
-    value
+struct STDPWeights{T<:AbstractFloat}<:Weights
+    value::Array{T, 2}
     αp::AbstractFloat
     αn::AbstractFloat
     τp::AbstractFloat
@@ -14,9 +14,14 @@ struct STDPWeights<:Weights
     lr::AbstractFloat
 
     function STDPWeights(
-            value; αp=.8, αn=.5, τp=5., τn=3., lr=.1)
-        new(value, αp, αn, τp, τn, lr)
+            value::Array{T, 2};
+            αp=.8, αn=.5, τp=5., τn=3., lr=.1) where T<:AbstractFloat
+        new{T}(value, αp, αn, τp, τn, lr)
     end
+end
+
+function updateweights!(weights::STDPWeights, pre, post)
+    updateweights!.(weights, pre, post)
 end
 
 # This function assumes that weights.value is a 2D array
