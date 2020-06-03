@@ -38,24 +38,24 @@ struct RateInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     end
 end
 
-function generate_spikes(
+function generate_spikes!(
         pop::RateInpPopulation,
-        neuron_id::Int,
-        sensor_inp::Vector{T},
+        sensor_inp::Array{T, 2},
         maxval::T) where T<:AbstractFloat
-    timespacing = 1 ./ compute_rate.(pop, maxval, sensor_inp)
-    numiters = Int.(floor.(pop.sampleperiod ./ timespacing))
-    spikes = pop.spiketype[]
-    start = 0.
-    for (interval, numiter) in zip(timespacing, numiters)
-        if sign(interval) == pop.sign
-            for i in 1:numiter
-                push!(spikes, pop.spiketype(pop.id, neuron_id, i * abs(interval) + start, sign(interval)))
+    for neuron_id in 1:pop.length
+        data = sensor_inp[neuron_id, :]
+        timespacing = 1 ./ compute_rate.(pop, maxval, data)
+        numiters = Int.(floor.(pop.sampleperiod ./ timespacing))
+        start = 0.
+        for (interval, numiter) in zip(timespacing, numiters)
+            if sign(interval) == pop.sign
+                for i in 1:numiter
+                    push!(pop.out_spikes, pop.spiketype(pop.id, neuron_id, i * abs(interval) + start, sign(interval)))
+                end
             end
+            start += pop.sampleperiod
         end
-        start += pop.sampleperiod
     end
-    spikes
 end
 
 reset!(p::RateInpPopulation) = nothing

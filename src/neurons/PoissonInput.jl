@@ -38,24 +38,24 @@ struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
     end
 end
 
-function generate_spikes(
+function generate_spikes!(
         pop::PoissonInpPopulation{T},
-        neuron_id::Int,
-        sensor_inp::Vector{T},
+        sensor_inp::Array{T, 2},
         maxval::T) where T<:AbstractFloat
-    rate = compute_rate.(pop, maxval, sensor_inp)
-    expacc = ExpAccumulate.(rate, pop.sampleperiod)
-    spikes = pop.spiketype[]
-    start = 0.
-    for acc in expacc
-        if sign(acc.rate) == pop.sign
-            for t in acc
-                push!(spikes, pop.spiketype(pop.id, neuron_id, t + start, pop.sign))
+    for neuron_id in 1:pop.length
+        data = sensor_inp[neuron_id, :]
+        rate = compute_rate.(pop, maxval, data)
+        expacc = ExpAccumulate.(rate, pop.sampleperiod)
+        start = 0.
+        for acc in expacc
+            if sign(acc.rate) == pop.sign
+                for t in acc
+                    push!(pop.out_spikes, pop.spiketype(pop.id, neuron_id, t + start, pop.sign))
+                end
             end
+            start += pop.sampleperiod
         end
-        start += pop.sampleperiod
     end
-    spikes
 end
 
 reset!(p::PoissonInpPopulation) = nothing
