@@ -47,7 +47,7 @@ struct Cortex{S<:Spike}
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Tuple{Pair{Int, Int}, Union{UA, DT}, F, Dict{Symbol, A}}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, Union{UA, DT}, Dict{Symbol, A}}},
             train_conn::Vector{Pair{Int, Int}},
             spiketype::UnionAll) where {UA<:UnionAll, DT<:DataType, F<:Function, A}
         !(spiketype<:Spike) ? error("spiketype must be a subtype of Spike") : nothing
@@ -81,7 +81,7 @@ struct Cortex{S<:Spike}
     function Cortex(
             input_neuron_types::Vector,
             neuron_types::Vector,
-            connectivity::Vector{Tuple{Pair{Int, Int}, Union{UA, DT}, F}},
+            connectivity::Vector{Tuple{Pair{Int, Int}, Union{UA, DT}}},
             train_conn::Vector{Pair{Int, Int}},
             spiketype::UnionAll) where {UA<:UnionAll, DT<:DataType, F<:Function}
         connectivity =
@@ -129,15 +129,15 @@ function make_proc_pops(neuron_types::Vector, num_inp_pop::Int)
 end
 
 function makeweights(conn, populations)
-    if length(conn) == 4
-        ij, wt_type, wt_init, wt_params = conn
+    if length(conn) == 3
+        ij, wt_type, wt_params = conn
     else
-        ij, wt_type, wt_init = conn
+        ij, wt_type = conn
         wt_params = Dict{Symbol, Any}()
     end
     i, j = ij
-    weightval = wt_init(populations[j].length, populations[i].length)
-    ij=>wt_type(weightval; wt_params...)
+    sz = populations[j].length, populations[i].length
+    ij=>wt_type(sz...; wt_params...)
 end
 
 function makematrix(matval::Vector{Pair{Int, Int}}, numpop)

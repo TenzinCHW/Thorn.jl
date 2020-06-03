@@ -14,8 +14,10 @@ struct STDPWeights{T<:AbstractFloat}<:Weights
     lr::AbstractFloat
 
     function STDPWeights(
-            value::Array{T, 2};
-            αp=.8, αn=.5, τp=5., τn=3., lr=.1) where T<:AbstractFloat
+            sz::Int...;
+            αp=.8, αn=.5, τp=5., τn=3., lr=.1, wt_init=rand)
+        value = wt_init(sz...)
+        T = typeof(value[end])
         new{T}(value, αp, αn, τp, τn, lr)
     end
 end
