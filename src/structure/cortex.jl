@@ -28,11 +28,11 @@ julia> conn = [(1=>2, STDPWeights, rand)];
 julia> cortex = Cortex(inp_neuron_types, proc_neuron_types, conn, spiketype);
 ```
 """
-struct Cortex{S<:Spike}
+struct Cortex{S<:Spike, I<:Int}
     input_populations::Vector{InputPopulation}
     processing_populations::Vector{ProcessingPopulation}
     populations::Vector{NeuronPopulation}
-    weights::Dict{Pair{Int, Int}, W} where W<:Weights # Input is along 2nd dimension
+    weights::Dict{Pair{I, I}, W} where W<:Weights # Input is along 2nd dimension
     connectivity_matrix::BitArray{2}
     # describes whether a connection should be trained
     train_matrix::BitArray{2}
@@ -67,7 +67,7 @@ struct Cortex{S<:Spike}
 
         S_earliest = spiketype[]
         S_proposed = Dict{Int, Vector{spiketype}}(pop.id=>spiketype[] for pop in populations)
-        new{spiketype}(
+        new{spiketype, typeof(populations[1].id)}(
             input_populations,
             processing_populations,
             populations,

@@ -11,14 +11,14 @@ sampleperiod = 100. # Milliseconds
 Datastructure for generating spikes via a Poisson process.
 Use this type as input to `Cortex`. See `Cortex`.
 """
-struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
-    id::Int
+struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike, I<:Int} <: InputPopulation
+    id::I
     maxrate::T
     minrate::T
     sampleperiod::T
     spiketype::UnionAll
     out_spikes::Queue{S}
-    length::Int
+    length::I
     sign::Int8
 
     function PoissonInpPopulation(
@@ -33,7 +33,7 @@ struct PoissonInpPopulation{T<:AbstractFloat, S<:Spike} <: InputPopulation
 
         sign ∉ (-1, 1) && error("sign must be 1 or -1")
         out_spikes = Queue(spiketype)
-        new{typeof(maxrate), spiketype}(
+        new{typeof(maxrate), spiketype, typeof(sz)}(
             id, maxrate, minrate, sampleperiod, spiketype, out_spikes, sz, sign)
     end
 end

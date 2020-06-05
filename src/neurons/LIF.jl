@@ -15,9 +15,9 @@ def_rrp = 20.
 Datastructure for the Leaky Integrate and Fire model.
 Use this type as input to `Cortex`. See `Cortex`.
 """
-struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
-    id::Int
-    length::Int
+struct LIFPopulation{T<:AbstractFloat, I<:Int, U<:UInt} <: ProcessingPopulation
+    id::I
+    length::I
     u::Vector{T}
     init_u::T
     rest_u::T
@@ -29,10 +29,10 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
     rrp::T
     fire_after::Vector{T}
     thresh::Vector{T}
-    num_spikes::Vector{UInt}
+    num_spikes::Vector{U}
     u_func::Function
     out_spikes::Queue{LIFSpike}
-    last_spike::Array{Union{Spike, Nothing}, 0}
+    last_spike::Array{Union{LIFSpike, Nothing}, 0}
 
     function LIFPopulation(id, sz;
                            init_u=def_u,
@@ -51,10 +51,10 @@ struct LIFPopulation{T<:AbstractFloat} <: ProcessingPopulation
         thresh = threshval * ones(sz)
         num_spikes = zeros(UInt, sz)
         u_func = LIF(rest_u, τ)
-        last_spike = Array{Union{Spike, Nothing}}(undef)
+        last_spike = Array{Union{LIFSpike, Nothing}}(undef)
         last_spike[] = nothing
         q = Queue(LIFSpike) #Queue(typeof(LIFSpike(1, 1, arp)))
-        new{typeof(init_u)}(
+        new{typeof(init_u), typeof(sz), typeof(last(num_spikes))}(
             id,
             sz,
             u,
