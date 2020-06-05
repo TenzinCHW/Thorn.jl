@@ -16,7 +16,7 @@ generate_input_spikes!(inp_pop, data, maxval)
 
 # Processing population test
 for s in inp_pop.out_spikes
-    outspikes = Spike[]
+    outspikes = LIFSpike[]
     @views recvspike!(proc_pop, outspikes, weights, s)
     voltages = proc_pop.u
     num_spike = sum(voltages .> proc_pop.thresh)

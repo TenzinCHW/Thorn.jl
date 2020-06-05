@@ -38,10 +38,10 @@ struct Cortex{S<:Spike}
     train_matrix::BitArray{2}
     # temp vector for holding sorted seq of earliest spikes from
     # each pop to filter spike proposals
-    S_earliest::Vector{Spike}
+    S_earliest::Vector{S}
     # temp dict for holding vectors of spike proposals for each
     # pop after input spike enters pop
-    S_proposed::Dict{Int, Vector{Spike}}
+    S_proposed::Dict{Int, Vector{S}}
 
     # Constructor with connectivity_matrix and weight initialisation function
     function Cortex(
@@ -267,8 +267,7 @@ function process_sample!(
         spike = process_next_spike!(cortex, train)
         monitorrecord!(record, cortex, spike, extractors)
     end
-    record = collapserecord!(record)
-    record
+    collapserecord!(record)
 end
 
 function process_next_spike!(cortex::Cortex, train::Bool)
@@ -323,7 +322,7 @@ function nextspikebypop!(cortex::Cortex, dst_pop_ids::Vector{Int})
     sort!(cortex.S_earliest, by=s->s.time)
 end
 
-function get_next_spike(pop::NeuronPopulation, newspikes::Vector{Spike})
+function get_next_spike(pop::NeuronPopulation, newspikes::Vector{S}) where S<:Spike
     nextpopspike = get_next_spike(pop)
     nextnewspike = get_next_spike(newspikes)
     if !isnothing(nextpopspike)
@@ -406,7 +405,7 @@ function outputspikesandupdateweights!(
     end
 end
 
-function emptyallarr!(S_proposed::Dict{Int, Vector{Spike}})
+function emptyallarr!(S_proposed::Dict{Int, Vector{S}}) where S<:Spike
     for (i, arr) in S_proposed
         empty!(arr)
     end

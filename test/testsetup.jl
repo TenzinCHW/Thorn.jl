@@ -9,8 +9,9 @@ function createprocpop(id::Int)
     LIFPopulation(id, defaultparams()[1:end-1]...) # Don't need spiketype for LIFPop
 end
 
-function createcortex(;inp_kwargs::Dict=Dict(), proc_kwargs::Dict=Dict(),
-                     wt_init::Function=rand)
+function createcortex(;inp_kwargs::Dict=Dict(),
+                      proc_kwargs::Dict=Dict(),
+                      wt_init::Function=rand)
     sz, spiketype, lr = defaultparams()
     #input_neuron_types = [(PoissonInpPopulation, sz, inp_kwargs)]
     input_neuron_types = [InputPopulationPair(PoissonInpPopulation, sz, inp_kwargs)...]
@@ -23,7 +24,9 @@ end
 
 function getrandomdata(cortex::Cortex, numsample::Int)
     sz = [pop.length for pop in cortex.input_populations]
-    [i .- 1 for i in 2rand.(sz, numsample)]
+    rng = Random.MersenneTwister(42)
+    randstuff = [rand(rng, s, numsample) for s in sz]
+    [i .- 1 for i in 2randstuff]
 end
 
 function runprocesssample(args...)

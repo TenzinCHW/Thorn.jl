@@ -77,17 +77,17 @@ end
 
 function recvspike!(
         pop::LIFPopulation,
-        proposedspikes::Vector{Spike},
+        proposedspikes::Vector{LIFSpike},
         weights::Array{T, 2},
         spike::Spike) where T<:AbstractFloat
     weights = weights[:, spike.neuron_id]
     dt = isnothing(pop.last_spike[]) ? spike.time : spike.time - pop.last_spike[].time
-    pop.u .= (spike.time .>= pop.fire_after) .* weights + pop.u_func.(pop.u, dt) * spike.sign
+    pop.u .= (spike.time .>= pop.fire_after) .* weights * spike.sign + pop.u_func.(pop.u, dt)
     pop.last_spike[] = spike
     fired = pop.u .>= pop.thresh
     inds = findall(fired)
+    fire_time = spike.time + pop.arp
     for i in inds
-        fire_time = spike.time + pop.arp
         pop.fire_after[i] = spike.time + pop.rrp
         push!(proposedspikes, LIFSpike(pop.id, i, fire_time, 1))#sign(pop.u[i]))) # Last arg is sign
     end
@@ -107,7 +107,7 @@ function updatevalidspikes!(pop::LIFPopulation, spikes::Vector{S}) where S<:Spik
 end
 
 function update_spike!(pop::LIFPopulation, s::Spike)
-    pop.thresh[s.neuron_id] += pop.γ1 * exp(pop.γ2*length(pop.num_spikes[s.neuron_id]))
+    pop.thresh[s.neuron_id] += pop.γ1 * exp(pop.γ2*pop.num_spikes[s.neuron_id])
     pop.num_spikes[s.neuron_id] += 1
     pop.u[s.neuron_id] = pop.rest_u
 end

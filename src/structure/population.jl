@@ -15,9 +15,6 @@ end
 
 function update_weights!(pop::ProcessingPopulation, weights::Weights, spike::Spike)
     updateweights!(weights, spike, Array(pop.out_spikes))
-    #for s in pop.out_spikes
-    #    updateweights!(weights, spike, s)
-    #end
 end
 
 function update_weights!(
@@ -28,11 +25,6 @@ function update_weights!(
     # update weights for each spike in populations that dst depends on for each new spike produced by dst
     spikes = filter(s->s.time < newspike.time, srcpop.out_spikes.items)
     updateweights!(weights, spikes, newspike)
-    #for s in srcpop.out_spikes.items
-    #    if s.time < newspike.time
-    #        updateweights!(weights, s, newspike)
-    #    end
-    #end
 end
 
 abstract type InputPopulation <: NeuronPopulation end
@@ -49,9 +41,6 @@ function generate_input_spikes!(
     # Call generate_input for each vector of inputs in second dim
     # broadcast across the first dimension
     generate_spikes!(input_pop, data, maxval)
-    #for s in Iterators.flatten(spikes)
-    #    push!(input_pop.out_spikes, s)
-    #end
     # Must ensure output spikes are sorted in chronological order
     sort!(input_pop.out_spikes.items, by=x->x.time);
 end
